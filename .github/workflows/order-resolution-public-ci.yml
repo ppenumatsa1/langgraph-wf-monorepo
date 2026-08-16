@@ -1,0 +1,183 @@
+name: Order Resolution Public CI
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "agents/order-resolution/foundry-public/**"
+      - ".github/workflows/order-resolution-public-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "agents/order-resolution/foundry-public/**"
+      - ".github/workflows/order-resolution-public-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  routing:
+    name: Operating model routing
+    runs-on: ubuntu-latest
+    outputs:
+      validation_mode: ${{ steps.route.outputs.validation_mode }}
+      deploy_mode: ${{ steps.route.outputs.deploy_mode }}
+      router_reason: ${{ steps.route.outputs.router_reason }}
+      base_ref: ${{ steps.base.outputs.base_ref }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+        with:
+          fetch-depth: 0
+      - name: Resolve diff base
+        id: base
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base_ref="${{ github.event.pull_request.base.sha }}"
+          elif [[ -n "${{ github.event.before || '' }}" && "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]]; then
+            base_ref="${{ github.event.before }}"
+          else
+            base_ref="HEAD~1"
+          fi
+          echo "base_ref=$base_ref" >> "$GITHUB_OUTPUT"
+      - name: Route validation and deploy mode
+        id: route
+        shell: bash
+        run: |
+          set -euo pipefail
+          routing_output="$(agents/order-resolution/foundry-public/scripts/skills/deployment-mode-router.sh "${{ steps.base.outputs.base_ref }}")"
+          echo "$routing_output"
+          echo "validation_mode=$(grep '^validation_mode=' <<<"$routing_output" | head -n1 | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          echo "deploy_mode=$(grep '^deploy_mode=' <<<"$routing_output" | head -n1 | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+          echo "router_reason=$(grep '^reason=' <<<"$routing_output" | head -n1 | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+  operating-model-enforcement:
+    name: Operating model enforcement
+    runs-on: ubuntu-latest
+    needs: routing
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+        with:
+          fetch-depth: 0
+      - name: Enforce operating model guardrails
+        run: agents/order-resolution/foundry-public/scripts/skills/operating-model-enforcement.sh "${{ needs.routing.outputs.base_ref }}"
+
+  backend:
+    name: Backend lint, tests, and evals
+    runs-on: ubuntu-latest
+    needs: [routing, operating-model-enforcement]
+    if: ${{ needs.routing.outputs.validation_mode == 'full' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend dependencies
+        working-directory: agents/order-resolution/foundry-public/backend
+        run: |
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements-dev.txt
+      - name: Run backend lint and tests
+        working-directory: agents/order-resolution/foundry-public
+        run: make test
+      - name: Run deterministic backend evaluations
+        working-directory: agents/order-resolution/foundry-public
+        run: make eval-backend
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    needs: [routing, operating-model-enforcement]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: agents/order-resolution/foundry-public/frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: agents/order-resolution/foundry-public/frontend
+        run: npm ci
+      - name: Build frontend
+        working-directory: agents/order-resolution/foundry-public/frontend
+        run: npm run build
+
+  e2e:
+    name: Docker E2E
+    runs-on: ubuntu-latest
+    needs: [routing, operating-model-enforcement]
+    if: ${{ needs.routing.outputs.validation_mode == 'full' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: agents/order-resolution/foundry-public/scripts/playwright/package-lock.json
+      - name: Prepare backend environment file
+        working-directory: agents/order-resolution/foundry-public
+        run: |
+          if [[ ! -f backend/.env && -f backend/.env.example ]]; then
+            cp backend/.env.example backend/.env
+          fi
+      - name: Run Docker E2E profile
+        working-directory: agents/order-resolution/foundry-public
+        run: make docker-test
+
+  design-review:
+    name: Deterministic design-review gate
+    runs-on: ubuntu-latest
+    needs: [routing, operating-model-enforcement]
+    if: ${{ needs.routing.outputs.validation_mode == 'full' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend dependencies
+        working-directory: agents/order-resolution/foundry-public/frontend
+        run: npm ci
+      - name: Run design-review gate
+        run: agents/order-resolution/foundry-public/scripts/skills/design-review-skill.sh
+
+  quick-validation:
+    name: Quick validation gate
+    runs-on: ubuntu-latest
+    needs: [routing, operating-model-enforcement]
+    if: ${{ needs.routing.outputs.validation_mode == 'quick' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install frontend dependencies
+        working-directory: agents/order-resolution/foundry-public/frontend
+        run: npm ci
+      - name: Install Playwright dependencies
+        working-directory: agents/order-resolution/foundry-public/scripts/playwright
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Run quick validation
+        working-directory: agents/order-resolution/foundry-public
+        run: make validate-quick

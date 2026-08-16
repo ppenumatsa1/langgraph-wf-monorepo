@@ -1,0 +1,23 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    LANGGRAPH_STRICT_MSGPACK=true \
+    PIP_INDEX_URL=https://packagefeedproxy.microsoft.io/pypi/simple
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN adduser --disabled-password --gecos "" appuser
+
+COPY --chown=appuser:appuser . .
+RUN mkdir -p /app/.foundry/results \
+    && chown -R appuser:appuser /app/.foundry
+
+USER appuser
+
+EXPOSE 8088
+
+CMD ["python", "-m", "foundry.main"]
