@@ -6,9 +6,6 @@ param postgresDatabaseName string
 param serverAdministratorLogin string
 @secure()
 param serverAdministratorPassword string
-param administratorObjectId string
-param administratorPrincipalName string
-param administratorPrincipalType string
 param operatorIp string = ''
 param tags object = {}
 
@@ -42,16 +39,6 @@ resource server 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
     highAvailability: {
       mode: 'Disabled'
     }
-  }
-}
-
-resource administrator 'Microsoft.DBforPostgreSQL/flexibleServers/administrators@2024-08-01' = {
-  parent: server
-  name: administratorObjectId
-  properties: {
-    principalName: administratorPrincipalName
-    principalType: administratorPrincipalType
-    tenantId: subscription().tenantId
   }
 }
 

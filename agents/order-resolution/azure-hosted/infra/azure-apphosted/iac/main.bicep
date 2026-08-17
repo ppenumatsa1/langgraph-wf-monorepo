@@ -29,25 +29,12 @@ param infrastructureMode string = 'bootstrap'
 @maxLength(15)
 param namePrefix string = 'orderresolution'
 
-@description('Object ID of the Entra principal that owns PostgreSQL DDL.')
-param postgresAdministratorObjectId string
-
-@description('Display name of the Entra principal that owns PostgreSQL DDL.')
-param postgresAdministratorPrincipalName string
-
 @description('Local bootstrap login required by PostgreSQL server creation. It is not used by the application runtime.')
 param postgresServerAdministratorLogin string = 'pgbootstrapadmin'
 
 @secure()
 @description('Generated bootstrap password stored only in the local AZD environment.')
 param postgresServerAdministratorPassword string
-
-@allowed([
-  'User'
-  'ServicePrincipal'
-  'Group'
-])
-param postgresAdministratorPrincipalType string = 'User'
 
 @description('Optional public IPv4 address used only by the administrator for schema/bootstrap work.')
 param postgresOperatorIp string = ''
@@ -128,9 +115,6 @@ module postgres './modules/postgres.bicep' = if (infrastructureMode == 'bootstra
     postgresDatabaseName: 'order_resolution'
     serverAdministratorLogin: postgresServerAdministratorLogin
     serverAdministratorPassword: postgresServerAdministratorPassword
-    administratorObjectId: postgresAdministratorObjectId
-    administratorPrincipalName: postgresAdministratorPrincipalName
-    administratorPrincipalType: postgresAdministratorPrincipalType
     operatorIp: postgresOperatorIp
     tags: tags
   }

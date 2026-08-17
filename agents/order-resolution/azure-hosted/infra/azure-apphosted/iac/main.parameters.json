@@ -9,9 +9,6 @@
     "namePrefix": { "value": "${NAME_PREFIX}" },
     "postgresServerAdministratorLogin": { "value": "${POSTGRES_SERVER_ADMIN_LOGIN=pgbootstrapadmin}" },
     "postgresServerAdministratorPassword": { "value": "${POSTGRES_SERVER_ADMIN_PASSWORD}" },
-    "postgresAdministratorObjectId": { "value": "${POSTGRES_ADMIN_OBJECT_ID}" },
-    "postgresAdministratorPrincipalName": { "value": "${POSTGRES_ADMIN_PRINCIPAL_NAME}" },
-    "postgresAdministratorPrincipalType": { "value": "${POSTGRES_ADMIN_PRINCIPAL_TYPE=User}" },
     "postgresOperatorIp": { "value": "${POSTGRES_OPERATOR_IP=}" }
   }
 }

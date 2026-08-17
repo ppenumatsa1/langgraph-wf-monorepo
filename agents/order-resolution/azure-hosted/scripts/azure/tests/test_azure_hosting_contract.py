@@ -97,6 +97,7 @@ def test_live_verification_requires_exact_apps_and_no_foundry_agents() -> None:
 def test_bootstrap_generates_server_admin_secret_in_local_azd_state() -> None:
     bootstrap = read("scripts/azure/bootstrap.sh")
     provision = read("scripts/azure/provision_infrastructure.sh")
+    postgres = read("infra/azure-apphosted/iac/modules/postgres.bicep")
     assert "secrets.SystemRandom().shuffle" in bootstrap
     assert "azd env set POSTGRES_SERVER_ADMIN_PASSWORD" in bootstrap
     assert "postgres_server_admin_password" in bootstrap
@@ -104,6 +105,8 @@ def test_bootstrap_generates_server_admin_secret_in_local_azd_state() -> None:
     assert 'azd provision --cwd "$ROOT_DIR" --preview --no-prompt' in provision
     assert "Delete or Replace changes" in provision
     assert '"$SCRIPT_DIR/provision_infrastructure.sh"' in bootstrap
+    assert "microsoft-entra-admin create" in bootstrap
+    assert "administrators@" not in postgres
 
 
 def test_operational_scripts_never_prompt_for_human_confirmation() -> None:
