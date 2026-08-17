@@ -59,6 +59,7 @@ def test_postgres_dual_auth_and_public_poc_guardrails() -> None:
     assert "public-poc-allow-azure-services" in postgres
     assert "require_secure_transport" in verification
     assert "postgres_dual_auth:true" in verification
+    assert 'firewall-rule list \\\n    --subscription "$subscription_id" \\\n    --resource-group "$resource_group" \\\n    --server-name "$postgres_name"' in verification
 
 
 def test_backend_is_single_replica_until_distributed_hitl_locking() -> None:

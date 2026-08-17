@@ -80,7 +80,7 @@ firewall_json="$(
   az postgres flexible-server firewall-rule list \
     --subscription "$subscription_id" \
     --resource-group "$resource_group" \
-    --name "$postgres_name" \
+    --server-name "$postgres_name" \
     -o json
 )"
 jq -e '
