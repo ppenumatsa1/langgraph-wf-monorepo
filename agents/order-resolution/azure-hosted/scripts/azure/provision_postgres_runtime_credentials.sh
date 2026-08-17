@@ -11,6 +11,25 @@ get_env() {
     azd env get-value "$1" --cwd "$FOUNDRY_DIR" --no-prompt 2>/dev/null || true
 }
 
+get_secret_env() {
+  local name="$1"
+  AZURE_DEV_USER_AGENT=microsoft_foundry_skill \
+    azd env get-values --cwd "$FOUNDRY_DIR" --no-prompt 2>/dev/null |
+    python3 -c '
+import shlex
+import sys
+
+name = sys.argv[1]
+for line in sys.stdin:
+    key, separator, raw_value = line.rstrip("\n").partition("=")
+    if separator and key == name:
+        values = shlex.split(raw_value, posix=True)
+        if len(values) == 1:
+            print(values[0], end="")
+        break
+' "$name"
+}
+
 required_env() {
   local name="$1"
   local value
@@ -25,7 +44,7 @@ required_env() {
 secure_value() {
   local name="$1"
   local value="${!name:-}"
-  [[ -n "$value" ]] || value="$(get_env "$name")"
+  [[ -n "$value" ]] || value="$(get_secret_env "$name")"
   if [[ -z "$value" ]]; then
     value="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
     set_secret "$name" "$value"

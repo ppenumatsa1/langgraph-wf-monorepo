@@ -98,6 +98,7 @@ def test_bootstrap_generates_server_admin_secret_in_local_azd_state() -> None:
     bootstrap = read("scripts/azure/bootstrap.sh")
     provision = read("scripts/azure/provision_infrastructure.sh")
     postgres = read("infra/azure-apphosted/iac/modules/postgres.bicep")
+    runtime_credentials = read("scripts/azure/provision_postgres_runtime_credentials.sh")
     assert "secrets.SystemRandom().shuffle" in bootstrap
     assert "azd env set POSTGRES_SERVER_ADMIN_PASSWORD" in bootstrap
     assert "postgres_server_admin_password" in bootstrap
@@ -107,6 +108,8 @@ def test_bootstrap_generates_server_admin_secret_in_local_azd_state() -> None:
     assert '"$SCRIPT_DIR/provision_infrastructure.sh"' in bootstrap
     assert "microsoft-entra-admin create" in bootstrap
     assert "administrators@" not in postgres
+    assert "azd env get-values" in runtime_credentials
+    assert 'value="$(get_secret_env "$name")"' in runtime_credentials
 
 
 def test_operational_scripts_never_prompt_for_human_confirmation() -> None:
