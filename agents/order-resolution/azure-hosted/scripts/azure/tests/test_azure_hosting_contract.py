@@ -86,6 +86,17 @@ def test_domain_e2e_timestamp_covers_the_executed_workflows() -> None:
     assert 'payload.get("release_id")' in foundry_eval
 
 
+def test_release_telemetry_is_unsampled_and_foundry_can_read_it() -> None:
+    telemetry = read("backend/app/core/telemetry.py")
+    foundry = read("infra/azure-apphosted/iac/modules/foundry.bicep")
+    release = read("scripts/azure/release.sh")
+    assert "sampling_ratio=1.0" in telemetry
+    assert "projectApplicationInsightsReader" in foundry
+    assert "projectLogAnalyticsReader" in foundry
+    assert "logAnalyticsReaderRole" in foundry
+    assert "current_stage=evaluation_and_telemetry" in release
+
+
 def test_live_verification_requires_exact_apps_and_no_foundry_agents() -> None:
     verification = read("scripts/azure/verify_deployment.sh")
     assert "az containerapp list" in verification

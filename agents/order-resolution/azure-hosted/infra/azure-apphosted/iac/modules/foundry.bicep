@@ -4,10 +4,20 @@ param location string
 param foundryAccountName string
 param foundryProjectName string
 param applicationInsightsName string
+param logAnalyticsWorkspaceName string
 param tags object = {}
 
 resource appInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
+}
+
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = {
+  name: logAnalyticsWorkspaceName
+}
+
+resource logAnalyticsReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: '73c42c96-874c-492b-b04d-ab87d138a893'
 }
 
 resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
@@ -101,6 +111,26 @@ resource evaluationDeployment 'Microsoft.CognitiveServices/accounts/deployments@
   ]
 }
 
+resource projectApplicationInsightsReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(appInsights.id, project.id, logAnalyticsReaderRole.id)
+  scope: appInsights
+  properties: {
+    roleDefinitionId: logAnalyticsReaderRole.id
+    principalId: project.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource projectLogAnalyticsReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(logAnalyticsWorkspace.id, project.id, logAnalyticsReaderRole.id)
+  scope: logAnalyticsWorkspace
+  properties: {
+    roleDefinitionId: logAnalyticsReaderRole.id
+    principalId: project.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 resource appInsightsConnection 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = {
   parent: project
   name: 'ApplicationInsights'
@@ -117,6 +147,10 @@ resource appInsightsConnection 'Microsoft.CognitiveServices/accounts/projects/co
       ResourceId: appInsights.id
     }
   }
+  dependsOn: [
+    projectApplicationInsightsReader
+    projectLogAnalyticsReader
+  ]
 }
 
 output accountId string = account.id

@@ -99,6 +99,7 @@ module foundry './modules/foundry.bicep' = if (infrastructureMode == 'bootstrap'
     foundryAccountName: foundryAccountName
     foundryProjectName: foundryProjectName
     applicationInsightsName: appInsightsName
+    logAnalyticsWorkspaceName: logAnalyticsName
     tags: tags
   }
   dependsOn: [

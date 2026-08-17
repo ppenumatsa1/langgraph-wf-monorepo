@@ -86,6 +86,21 @@ def test_observability_defaults_to_langgraph_service_name(
     telemetry._reset_observability_for_tests()
 
 
+def test_azure_monitor_exports_every_release_trace(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(
+        "azure.monitor.opentelemetry.configure_azure_monitor",
+        lambda **kwargs: captured.update(kwargs),
+    )
+
+    assert telemetry._configure_azure_monitor("InstrumentationKey=test", "resource") is True
+    assert captured == {
+        "connection_string": "InstrumentationKey=test",
+        "resource": "resource",
+        "sampling_ratio": 1.0,
+    }
+
+
 def test_langgraph_auto_tracing_redacts_content_and_reuses_provider(
     monkeypatch,
 ) -> None:

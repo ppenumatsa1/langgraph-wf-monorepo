@@ -46,6 +46,7 @@ timed verification scripts/azure/verify_deployment.sh
 timed smoke scripts/azure/smoke.sh
 timed domain_e2e scripts/azure/domain_e2e.sh
 timed browser_e2e scripts/azure/browser_e2e.sh
+current_stage=evaluation_and_telemetry
 timed evaluation make azure-eval &
 evaluation_pid=$!
 timed telemetry make azure-telemetry &

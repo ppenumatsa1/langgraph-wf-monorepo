@@ -77,10 +77,17 @@ def _configure_azure_monitor(connection_string: str, resource: Any) -> bool:
         return False
 
     try:
-        configure_azure_monitor(connection_string=connection_string, resource=resource)
+        configure_azure_monitor(
+            connection_string=connection_string,
+            resource=resource,
+            sampling_ratio=1.0,
+        )
     except TypeError:
         try:
-            configure_azure_monitor(connection_string=connection_string)
+            configure_azure_monitor(
+                connection_string=connection_string,
+                sampling_ratio=1.0,
+            )
         except Exception:
             logger.exception("Azure Monitor telemetry configuration failed")
             return False
