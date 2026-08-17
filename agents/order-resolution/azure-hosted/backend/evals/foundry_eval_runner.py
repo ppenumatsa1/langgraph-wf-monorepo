@@ -67,7 +67,11 @@ def _load_domain_e2e_evidence(
         raise ValueError("Domain E2E evidence must be a JSON object")
     started_at = _parse_evidence_timestamp(payload, "started_at")
     generated_at = _parse_evidence_timestamp(payload, "generated_at")
-    release_id = os.getenv("AZURE_RELEASE_ID", "manual-report")
+    if generated_at < started_at:
+        raise ValueError("Domain E2E evidence generated_at cannot precede started_at")
+    release_id = payload.get("release_id")
+    if not isinstance(release_id, str) or not release_id:
+        raise ValueError("Domain E2E evidence is missing release_id")
 
     evidence_ids = payload.get("conversation_ids")
     conversation_ids = _dedupe(

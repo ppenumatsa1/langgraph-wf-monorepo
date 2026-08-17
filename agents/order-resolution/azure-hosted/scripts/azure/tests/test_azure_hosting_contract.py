@@ -81,6 +81,8 @@ def test_domain_e2e_timestamp_covers_the_executed_workflows() -> None:
     assert '"started_at": started_at' in matrix
     assert "'.started_at // empty'" in telemetry
     assert '_parse_evidence_timestamp(payload, "started_at")' in foundry_eval
+    assert "--arg release_id" in read("scripts/azure/domain_e2e.sh")
+    assert 'payload.get("release_id")' in foundry_eval
 
 
 def test_live_verification_requires_exact_apps_and_no_foundry_agents() -> None:

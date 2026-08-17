@@ -61,6 +61,7 @@ def test_load_domain_e2e_evidence_requires_all_release_conversations(
             {
                 "started_at": "2026-07-20T13:58:00Z",
                 "generated_at": "2026-07-20T14:00:00Z",
+                "release_id": "manual-report",
                 "conversation_ids": ["conv-low", "conv-approved", "conv-damaged"],
             }
         ),
@@ -75,6 +76,23 @@ def test_load_domain_e2e_evidence_requires_all_release_conversations(
     assert release_id == "manual-report"
 
 
+def test_load_domain_e2e_evidence_requires_release_id(tmp_path: Path) -> None:
+    evidence = tmp_path / "domain-e2e.json"
+    evidence.write_text(
+        json.dumps(
+            {
+                "started_at": "2026-07-20T13:58:00Z",
+                "generated_at": "2026-07-20T14:00:00Z",
+                "conversation_ids": ["conv-low", "conv-approved", "conv-damaged"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="missing release_id"):
+        _load_domain_e2e_evidence(evidence)
+
+
 def test_load_domain_e2e_evidence_rejects_missing_conversation(tmp_path: Path) -> None:
     evidence = tmp_path / "domain-e2e.json"
     evidence.write_text(
@@ -82,6 +100,7 @@ def test_load_domain_e2e_evidence_rejects_missing_conversation(tmp_path: Path) -
             {
                 "started_at": "2026-07-20T13:58:00Z",
                 "generated_at": "2026-07-20T14:00:00Z",
+                "release_id": "manual-report",
                 "low_risk_thread_id": "conv-low",
                 "approved_thread_id": "conv-approved",
             }
