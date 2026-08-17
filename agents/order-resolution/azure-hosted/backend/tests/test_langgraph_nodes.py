@@ -88,13 +88,20 @@ async def test_triage_model_failure_falls_back_inside_graph_node() -> None:
 
 
 @pytest.mark.asyncio
+async def test_triage_preserves_non_default_order_id() -> None:
+    result = await _nodes().triage(_state("Order ORD-1004 arrived damaged."))
+
+    assert result["triage_summary"].endswith("order_id=ord-1004; issue_type=damaged_item")
+
+
+@pytest.mark.asyncio
 async def test_resolution_rules_remain_deterministic() -> None:
     state = _state("Order ORD-1004 arrived damaged.")
     state.update(
         {
             "issue_type": "damaged_item",
             "order": {
-                "order_id": "ord-1001",
+                "order_id": "ord-1004",
                 "state": "in_transit",
                 "total_amount": 79.0,
             },

@@ -126,8 +126,10 @@ def evaluate_case(case: dict[str, Any], details: dict[str, Any]) -> list[str]:
             failures.append(f"forbidden event {event_type} was emitted")
 
     expected_order_id = case.get("expected_order_id")
-    if expected_order_id and not contains_value(details, expected_order_id):
-        failures.append(f"expected order id {expected_order_id} not found in workflow details")
+    if expected_order_id:
+        latest_output = details.get("latest_output")
+        if not contains_value(latest_output, expected_order_id):
+            failures.append(f"expected order id {expected_order_id} not found in workflow output")
 
     return failures
 

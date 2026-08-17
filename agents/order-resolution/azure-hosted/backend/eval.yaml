@@ -27,9 +27,8 @@ foundry:
   evaluators:
     - task_completion
     - coherence
-  trace_evaluation:
+  workflow_evaluation:
     evidence_file: .foundry/results/domain-e2e.json
-    max_traces: 10
-    minimum_trace_age_seconds: 90
+    max_workflows: 10
 options:
   pass_threshold: 0.8

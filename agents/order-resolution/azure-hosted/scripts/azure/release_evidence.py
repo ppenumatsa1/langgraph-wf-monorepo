@@ -138,7 +138,13 @@ def aggregate(release_id: str) -> None:
         payload = json.loads(path.read_text(encoding="utf-8"))
         acceptable = payload.get("status") in {"passed", "completed"}
         if name == "evaluation.json" and payload.get("report_only") is True:
-            acceptable = True
+            result_counts = payload.get("result_counts")
+            acceptable = (
+                payload.get("status") == "completed"
+                and isinstance(result_counts, dict)
+                and int(result_counts.get("errored", 0)) == 0
+                and int(result_counts.get("total", 0)) >= 1
+            )
         if not acceptable:
             raise ValueError(f"Release gate did not pass: {name}")
         artifacts.append(

@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
-import math
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 import yaml
 from app.langgraph.clients import get_foundry_models_config
@@ -94,22 +95,7 @@ def _load_domain_e2e_evidence(
     return started_at, generated_at, conversation_ids, release_id
 
 
-def _trace_materialization_delay(
-    generated_at: datetime,
-    minimum_age_seconds: float,
-    *,
-    now: datetime | None = None,
-) -> float:
-    if not math.isfinite(minimum_age_seconds) or minimum_age_seconds < 0:
-        raise ValueError("Foundry trace evaluation minimum age must be a finite non-negative value")
-    current_time = now or datetime.now(timezone.utc)
-    if current_time.tzinfo is None:
-        raise ValueError("Current time used for trace evaluation must include a timezone")
-    age_seconds = (current_time.astimezone(timezone.utc) - generated_at).total_seconds()
-    return max(0.0, minimum_age_seconds - age_seconds)
-
-
-def _build_conversation_trace_testing_criteria(
+def _build_workflow_testing_criteria(
     evaluators: list[str],
     judge_model: str,
 ) -> list[dict[str, object]]:
@@ -127,23 +113,101 @@ def _build_conversation_trace_testing_criteria(
     return criteria
 
 
+def _load_workflow_messages(
+    evidence_path: Path,
+    conversation_ids: list[str],
+) -> list[list[dict[str, str]]]:
+    verification_path = evidence_path.with_name("verification.json")
+    if not verification_path.is_file():
+        raise FileNotFoundError(
+            f"Deployment verification evidence is required: {verification_path}"
+        )
+    verification = json.loads(verification_path.read_text(encoding="utf-8"))
+    frontend_url = verification.get("frontend_url")
+    if not isinstance(frontend_url, str) or not frontend_url.startswith("https://"):
+        raise ValueError("Deployment verification evidence is missing a secure frontend_url")
+
+    workflow_messages: list[list[dict[str, str]]] = []
+    for conversation_id in conversation_ids:
+        request = Request(
+            f"{frontend_url.rstrip('/')}/api/workflows/{quote(conversation_id, safe='')}",
+            headers={"Accept": "application/json"},
+        )
+        with urlopen(request, timeout=30) as response:  # noqa: S310
+            workflow = json.loads(response.read().decode("utf-8"))
+        if workflow.get("thread_id") != conversation_id:
+            raise ValueError("Workflow snapshot returned an unexpected thread_id")
+        user_input = workflow.get("input")
+        latest_output = workflow.get("latest_output")
+        assistant_message = (
+            latest_output.get("message") if isinstance(latest_output, dict) else None
+        )
+        if not isinstance(user_input, str) or not user_input.strip():
+            raise ValueError("Workflow snapshot is missing the user input")
+        if not isinstance(assistant_message, str) or not assistant_message.strip():
+            raise ValueError("Workflow snapshot is missing the assistant message")
+        workflow_messages.append(
+            [
+                {"role": "user", "content": user_input},
+                {"role": "assistant", "content": assistant_message},
+            ]
+        )
+    return workflow_messages
+
+
+def _workflow_data_source_config() -> dict[str, object]:
+    return {
+        "type": "custom",
+        "item_schema": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "role": {"type": "string"},
+                            "content": {"type": "string"},
+                        },
+                        "required": ["role", "content"],
+                    },
+                }
+            },
+            "required": ["messages"],
+        },
+        "include_sample_schema": False,
+    }
+
+
+def _workflow_run_data_source(
+    workflow_messages: list[list[dict[str, str]]],
+) -> dict[str, object]:
+    return {
+        "type": "jsonl",
+        "source": {
+            "type": "file_content",
+            "content": [{"item": {"messages": messages}} for messages in workflow_messages],
+        },
+    }
+
+
 def _evidence_path(root: Path, configured: str) -> Path:
     return Path(os.getenv("DOMAIN_E2E_EVIDENCE_FILE", root / configured))
 
 
 def _assert_eval_passed(payload: dict[str, object]) -> None:
     if str(payload.get("status")) != "completed":
-        raise RuntimeError(f"Foundry trace eval run ended with status: {payload.get('status')}")
+        raise RuntimeError(f"Foundry workflow eval run ended with status: {payload.get('status')}")
     result_counts = payload.get("result_counts")
     if not isinstance(result_counts, dict):
-        raise RuntimeError("Foundry trace eval completed without result counts")
+        raise RuntimeError("Foundry workflow eval completed without result counts")
     errored = int(result_counts.get("errored", 0))
     failed = int(result_counts.get("failed", 0))
     passed = int(result_counts.get("passed", 0))
     total = int(result_counts.get("total", 0))
     if errored or failed or total < 1 or passed < 1:
         raise RuntimeError(
-            "Foundry trace eval did not pass: "
+            "Foundry workflow eval did not pass: "
             f"passed={passed}, failed={failed}, errored={errored}, total={total}"
         )
 
@@ -155,21 +219,15 @@ async def run_foundry_eval() -> None:
     foundry_cfg = config.get("foundry")
     if not isinstance(foundry_cfg, dict):
         raise ValueError("backend/eval.yaml is missing foundry config block")
-    trace_cfg = foundry_cfg.get("trace_evaluation")
-    if not isinstance(trace_cfg, dict):
-        raise ValueError("backend/eval.yaml is missing foundry.trace_evaluation")
-    evidence_uri = trace_cfg.get("evidence_file")
+    workflow_cfg = foundry_cfg.get("workflow_evaluation")
+    if not isinstance(workflow_cfg, dict):
+        raise ValueError("backend/eval.yaml is missing foundry.workflow_evaluation")
+    evidence_uri = workflow_cfg.get("evidence_file")
     if not isinstance(evidence_uri, str) or not evidence_uri:
-        raise ValueError("backend/eval.yaml trace_evaluation.evidence_file is required")
-    max_traces = int(trace_cfg.get("max_traces", 10))
-    if max_traces < 1:
-        raise ValueError("backend/eval.yaml trace_evaluation.max_traces must be positive")
-    minimum_trace_age_seconds = float(
-        os.getenv(
-            "FOUNDRY_EVAL_MIN_TRACE_AGE_SECONDS",
-            trace_cfg.get("minimum_trace_age_seconds", 90),
-        )
-    )
+        raise ValueError("backend/eval.yaml workflow_evaluation.evidence_file is required")
+    max_workflows = int(workflow_cfg.get("max_workflows", 10))
+    if max_workflows < 1:
+        raise ValueError("backend/eval.yaml workflow_evaluation.max_workflows must be positive")
 
     evaluator_values = foundry_cfg.get("evaluators")
     if not isinstance(evaluator_values, list) or not all(
@@ -190,9 +248,9 @@ async def run_foundry_eval() -> None:
     requested_release_id = os.getenv("AZURE_RELEASE_ID")
     if requested_release_id and requested_release_id != release_id:
         raise ValueError("Domain E2E evidence does not belong to the active release window")
-    trace_materialization_delay = _trace_materialization_delay(
-        generated_at,
-        minimum_trace_age_seconds,
+    workflow_messages = _load_workflow_messages(
+        evidence_path,
+        conversation_ids[:max_workflows],
     )
     report_path = Path(
         os.getenv("FOUNDRY_EVAL_EVIDENCE_FILE", foundry_root / "results" / "foundry-report.json")
@@ -200,7 +258,7 @@ async def run_foundry_eval() -> None:
     report_path.parent.mkdir(parents=True, exist_ok=True)
     payload: dict[str, object] = {
         "status": "failed",
-        "provider": "foundry-trace",
+        "provider": "foundry-workflow-snapshot",
         "report_only": True,
         "release_id": release_id,
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -208,12 +266,9 @@ async def run_foundry_eval() -> None:
         "conversation_ids": conversation_ids,
         "e2e_started_at": started_at.isoformat(),
         "e2e_generated_at": generated_at.isoformat(),
-        "trace_materialization_delay_seconds": trace_materialization_delay,
     }
 
     try:
-        if trace_materialization_delay:
-            await asyncio.sleep(trace_materialization_delay)
         models_cfg = get_foundry_models_config()
         if models_cfg is None:
             raise RuntimeError(
@@ -227,38 +282,54 @@ async def run_foundry_eval() -> None:
         )
         openai_client = project_client.get_openai_client()
         eval_object = await openai_client.evals.create(
-            name=f"{eval_name}-trace",
-            data_source_config={"type": "azure_ai_source", "scenario": "traces"},
-            testing_criteria=_build_conversation_trace_testing_criteria(evaluators, judge_model),
+            name=f"{eval_name}-workflow",
+            data_source_config=_workflow_data_source_config(),
+            testing_criteria=_build_workflow_testing_criteria(evaluators, judge_model),
         )
         eval_run = await openai_client.evals.runs.create(
             eval_id=eval_object.id,
-            name=f"{eval_name} trace run",
+            name=f"{eval_name} workflow run",
             metadata={
                 "e2e_started_at": started_at.isoformat(),
                 "conversation_count": str(len(conversation_ids)),
             },
-            data_source={
-                "type": "azure_ai_trace_data_source_preview",
-                "trace_source": {
-                    "type": "conversation_id_source",
-                    "conversation_ids": conversation_ids[:max_traces],
-                },
-            },
-            extra_body={"evaluation_level": "conversation"},
+            data_source=_workflow_run_data_source(workflow_messages),
         )
         start = asyncio.get_running_loop().time()
         while str(eval_run.status) not in {"completed", "failed", "cancelled"}:
             if asyncio.get_running_loop().time() - start > timeout:
-                raise TimeoutError(f"Foundry trace evaluation timed out after {timeout} seconds")
+                raise TimeoutError(f"Foundry workflow evaluation timed out after {timeout} seconds")
             await asyncio.sleep(poll_interval)
             eval_run = await openai_client.evals.runs.retrieve(
                 run_id=eval_run.id,
                 eval_id=eval_object.id,
             )
+        output_summaries = []
+        output_page = await openai_client.evals.runs.output_items.list(
+            eval_run.id,
+            eval_id=eval_object.id,
+            limit=max_workflows,
+        )
+        async for output_item in output_page:
+            sample_error = getattr(output_item.sample, "error", None)
+            output_summaries.append(
+                {
+                    "status": output_item.status,
+                    "error_code": getattr(sample_error, "code", None),
+                    "error_message": getattr(sample_error, "message", None),
+                    "results": [
+                        {
+                            "name": result.name,
+                            "passed": result.passed,
+                            "score": result.score,
+                        }
+                        for result in output_item.results
+                    ],
+                }
+            )
         payload = {
             "status": str(eval_run.status),
-            "provider": "foundry-trace",
+            "provider": "foundry-workflow-snapshot",
             "report_only": True,
             "release_id": release_id,
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -269,8 +340,8 @@ async def run_foundry_eval() -> None:
             "conversation_ids": conversation_ids,
             "e2e_started_at": started_at.isoformat(),
             "e2e_generated_at": generated_at.isoformat(),
-            "trace_materialization_delay_seconds": trace_materialization_delay,
             "result_counts": _to_jsonable(getattr(eval_run, "result_counts", None)),
+            "output_summaries": output_summaries,
             "report_url": (
                 f"{models_cfg.project_endpoint.rstrip('/')}/evaluation/evaluations/{eval_object.id}/runs/{eval_run.id}"
             ),

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass
 
 from app.modules.order_resolution.hitl import classify_issue
@@ -28,7 +29,8 @@ def fetch_policy(issue_type: str) -> str:
 
 def deterministic_inputs(message: str) -> tuple[str, OrderStatus, str]:
     normalized = message.lower()
-    order_id = "ord-1009" if "1009" in normalized else "ord-1001"
+    order_match = re.search(r"\bord[\s_-]?(\d{4,})\b", normalized)
+    order_id = f"ord-{order_match.group(1)}" if order_match else "ord-1001"
     issue_type = classify_issue(normalized)
     order = fetch_order_status(order_id)
     return issue_type, order, fetch_policy(issue_type)

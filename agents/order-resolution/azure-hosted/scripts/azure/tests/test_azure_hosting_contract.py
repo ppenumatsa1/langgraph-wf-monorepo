@@ -84,6 +84,7 @@ def test_domain_e2e_timestamp_covers_the_executed_workflows() -> None:
     assert '_parse_evidence_timestamp(payload, "started_at")' in foundry_eval
     assert "--arg release_id" in read("scripts/azure/domain_e2e.sh")
     assert 'payload.get("release_id")' in foundry_eval
+    assert "not found in workflow output" in matrix
 
 
 def test_release_telemetry_is_unsampled_and_foundry_can_read_it() -> None:

@@ -158,6 +158,8 @@ async def test_duplicate_decision_is_atomic_and_submission_is_idempotent() -> No
     )
     before = repository.get_workflow_run(thread_id)
     assert before is not None
+    assert before.latest_output is not None
+    assert before.latest_output["submission_id"].endswith("ord-1004")
     before_event_ids = [event.id for event in before.events]
 
     await workflow.shutdown()
