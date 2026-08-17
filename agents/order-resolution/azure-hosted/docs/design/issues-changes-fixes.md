@@ -23,8 +23,40 @@
 - Added interprocess release-evidence locking and unique fsync'd atomic files.
 - Strengthened live verification to require exactly the expected two Container
   Apps and zero Foundry agent applications/versions.
+- Moved PostgreSQL Entra-administrator reconciliation after ARM provisioning so
+  server reconciliation cannot race the administrator child resource.
+- Changed ACR to the subscription-supported Premium SKU.
+- Granted the Foundry project identity read access to Application Insights and
+  Log Analytics for report-only evaluations.
+- Disabled Azure Monitor trace sampling for release workloads so bounded
+  telemetry correlation cannot silently omit an E2E conversation.
+- Replaced trace-content evaluation with ephemeral synthetic workflow snapshots;
+  Application Insights remains redacted while Foundry task-completion and
+  coherence graders receive the required user/assistant pair in memory.
+- Fixed deterministic order extraction so ORD-1002 through ORD-1010 no longer
+  collapse to ORD-1001, and strengthened E2E assertions to validate the terminal
+  workflow output rather than matching the original input.
 
-## Open deployment prerequisites
+## Accepted release
+
+- Release: `order-resolution-azure-20260817T210042Z-623966`
+- Source commit: `0d22e98`
+- IaC convergence: 2m 41s
+- Full app release: 8m 39.427s
+- Local gates: 78 backend tests, 11/11 deterministic evaluations, and 10/10
+  browser tests.
+- Azure gates: smoke passed, 3/3 domain E2E passed, and 10/10 browser E2E
+  passed.
+- Foundry report-only evaluation: 3/3 passed, zero failed, zero errored.
+- Application Insights: all three release conversations correlated across 92
+  rows with zero exceptions.
+- Runtime topology: exactly two Container Apps, internal backend, external
+  frontend, backend maximum one replica, and zero Foundry hosted-agent
+  applications or versions.
+- Public frontend:
+  `https://orderresolution-jed2e5qyaxlau-we.wittyriver-92c74877.eastus2.azurecontainerapps.io`
+
+## Deployment prerequisites
 
 - Azure CLI/AZD authentication and permission to create subscription/resource
   group deployments, role assignments, Cognitive Services deployments,
