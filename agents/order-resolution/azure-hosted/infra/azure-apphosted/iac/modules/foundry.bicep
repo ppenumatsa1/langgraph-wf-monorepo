@@ -64,7 +64,7 @@ resource embeddingsDeployment 'Microsoft.CognitiveServices/accounts/deployments@
   name: 'order-resolution-text-embedding-3-small'
   sku: {
     name: 'Standard'
-    capacity: 120
+    capacity: 100
   }
   properties: {
     model: {
