@@ -19,9 +19,10 @@ Application Insights, and aggregates secret-free evidence.
 Infrastructure bootstrap is exceptional:
 
 ```bash
-AZURE_BOOTSTRAP_APPROVED=true make azure-bootstrap
+make azure-bootstrap
 ```
 
-Never run bootstrap from routine release or GitHub Actions. Never add a Foundry
-application-host deployment leg. Report the public frontend URL and identify
-the backend as internal-only.
+Bootstrap previews infrastructure and fails closed on delete or replace
+operations. Never run bootstrap from routine release or GitHub Actions. Never
+add a Foundry application-host deployment leg. Report the public frontend URL
+and identify the backend as internal-only.

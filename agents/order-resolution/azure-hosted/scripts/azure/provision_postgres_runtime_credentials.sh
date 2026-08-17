@@ -26,12 +26,13 @@ secure_value() {
   local name="$1"
   local value="${!name:-}"
   [[ -n "$value" ]] || value="$(get_env "$name")"
-  if [[ -z "$value" && -t 0 ]]; then
-    read -r -s -p "Enter ${name}: " value
-    printf '\n' >&2
+  if [[ -z "$value" ]]; then
+    value="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+    set_secret "$name" "$value"
+    echo "Generated ${name} in local AZD state." >&2
   fi
   if [[ -z "$value" || "$value" == *$'\n'* || "$value" == *$'\r'* ]]; then
-    echo "${name} must be a non-empty single-line secret." >&2
+    echo "AUTOMATION BLOCKED: ${name} must be a non-empty single-line secret." >&2
     exit 1
   fi
   printf '%s' "$value"

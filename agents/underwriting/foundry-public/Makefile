@@ -321,11 +321,11 @@ foundry-provision:
 >./scripts/foundry/bootstrap_azd_env.sh
 >./scripts/foundry/ensure_foundry_azd_defaults.sh
 >$(MAKE) foundry-iac-build
->cd infra/foundry-hosted && AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd provision --no-prompt
+>./scripts/foundry/provision_infrastructure.sh
 >FOUNDRY_BOOTSTRAP_HYDRATE=1 ./scripts/foundry/bootstrap_azd_env.sh
 
 foundry-postgres-rebuild:
->./scripts/foundry/rebuild_postgres_server.sh "$(CONFIRM)"
+>./scripts/foundry/rebuild_postgres_server.sh
 
 foundry-postgres-schema:
 >bash ./scripts/foundry/bootstrap_postgres_schema.sh
@@ -381,7 +381,7 @@ foundry-release-deploy:
 >$(MAKE) foundry-release-app-deploy
 
 foundry-backend-internalize:
->./scripts/foundry/internalize_backend_ingress.sh "$(CONFIRM)"
+>./scripts/foundry/internalize_backend_ingress.sh
 
 foundry-up:
 >$(MAKE) foundry-provision

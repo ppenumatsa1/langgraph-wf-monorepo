@@ -36,12 +36,13 @@ secure_value() {
   if [[ -z "$value" ]]; then
     value="$(get_env "$name")"
   fi
-  if [[ -z "$value" && -t 0 ]]; then
-    read -r -s -p "Enter ${name}: " value
-    printf '\n' >&2
+  if [[ -z "$value" ]]; then
+    value="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+    set_azd_secret "$name" "$value"
+    echo "Generated ${name} in local AZD state." >&2
   fi
   if [[ -z "$value" ]]; then
-    echo "${name} must be supplied through the local AZD environment, process environment, or secure terminal input." >&2
+    echo "AUTOMATION BLOCKED: ${name} could not be generated. Record an issue and stop." >&2
     exit 1
   fi
   if [[ "$value" == *$'\n'* || "$value" == *$'\r'* ]]; then

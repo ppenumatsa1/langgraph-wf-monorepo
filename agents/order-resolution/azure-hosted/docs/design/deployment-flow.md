@@ -7,11 +7,12 @@ the exact subscription, resource group, and region. Modules create monitoring,
 ACR, Foundry inference/evaluation resources, PostgreSQL, managed identities,
 RBAC, the Container Apps environment, and two Container Apps.
 
-Bootstrap requires `AZURE_BOOTSTRAP_APPROVED=true` plus PostgreSQL Entra
-administrator object/name values. It generates the separate PostgreSQL
-server-creation password into local AZD environment state, enables dual
-Entra/password authentication, and never writes that secret to the profile or
-release evidence. Reuse mode is non-mutating.
+Bootstrap requires PostgreSQL Entra administrator object/name values. It runs
+a non-interactive infrastructure preview and stops on delete or replace
+operations. It generates the separate PostgreSQL server-creation password into
+local AZD environment state, enables dual Entra/password authentication, and
+never writes that secret to the profile or release evidence. Reuse mode is
+non-mutating.
 
 ## Routine app-only release
 

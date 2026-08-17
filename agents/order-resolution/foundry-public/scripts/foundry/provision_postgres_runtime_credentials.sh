@@ -24,14 +24,16 @@ required_env() {
 
 secure_value() {
   local name="$1"
+  local mode="${2:-required}"
   local value="${!name:-}"
   [[ -n "$value" ]] || value="$(get_env "$name")"
-  if [[ -z "$value" && -t 0 ]]; then
-    read -r -s -p "Enter ${name}: " value
-    printf '\n' >&2
+  if [[ -z "$value" && "$mode" == "generate" ]]; then
+    value="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+    set_secret "$name" "$value"
+    echo "Generated ${name} in local AZD state." >&2
   fi
   if [[ -z "$value" || "$value" == *$'\n'* || "$value" == *$'\r'* ]]; then
-    echo "${name} must be a non-empty single-line secret." >&2
+    echo "AUTOMATION BLOCKED: ${name} is missing or invalid. Record an issue and stop." >&2
     exit 1
   fi
   printf '%s' "$value"
@@ -59,7 +61,7 @@ database_name="$(required_env POSTGRES_DATABASE)"
 runtime_username="$(required_env POSTGRES_RUNTIME_USERNAME)"
 admin_username="$(required_env POSTGRES_ADMIN_USERNAME)"
 admin_password="$(secure_value POSTGRES_ADMIN_PASSWORD)"
-hosted_password="$(secure_value POSTGRES_HOSTED_PASSWORD)"
+hosted_password="$(secure_value POSTGRES_HOSTED_PASSWORD generate)"
 
 [[ "$database_name" =~ ^[A-Za-z_][A-Za-z0-9_]{0,62}$ ]] || {
   echo "POSTGRES_DATABASE is not a valid identifier." >&2

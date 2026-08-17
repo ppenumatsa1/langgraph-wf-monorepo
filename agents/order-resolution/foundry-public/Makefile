@@ -293,7 +293,7 @@ foundry-provision:
 
 foundry-provision-ready:
 	AZURE_DEV_USER_AGENT=microsoft_foundry_skill ./scripts/foundry/ensure_foundry_azd_defaults.sh
-	cd infra/foundry-hosted && AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd provision --no-prompt $(if $(FOUNDRY_PROVISION_NO_STATE),--no-state,)
+	./scripts/foundry/provision_infrastructure.sh $(if $(FOUNDRY_PROVISION_NO_STATE),--no-state,)
 
 foundry-postgres-schema:
 	./scripts/foundry/bootstrap_postgres_schema.sh

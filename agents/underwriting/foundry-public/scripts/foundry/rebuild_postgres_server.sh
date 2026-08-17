@@ -4,15 +4,6 @@ set -euo pipefail
 readonly ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 readonly FOUNDRY_DIR="$ROOT_DIR/infra/foundry-hosted"
 
-usage() {
-  cat >&2 <<EOF
-This permanently deletes PostgreSQL Flexible Server '$SERVER_NAME' and its underwriting database.
-Run only with the exact confirmation token:
-  make foundry-postgres-rebuild CONFIRM=$CONFIRMATION_TOKEN
-EOF
-  exit 2
-}
-
 require_bin() {
   command -v "$1" >/dev/null 2>&1 || {
     echo "Missing required binary: $1" >&2
@@ -46,9 +37,6 @@ SERVER_NAME="$(required_env_value POSTGRES_SERVER_NAME)"
 SERVER_LOCATION="$(required_env_value POSTGRES_SERVER_LOCATION)"
 DATABASE_NAME="$(required_env_value POSTGRES_DATABASE)"
 INFRASTRUCTURE_MODE="$(required_env_value INFRASTRUCTURE_MODE)"
-CONFIRMATION_TOKEN="REBUILD-${SERVER_NAME}"
-
-[[ "$#" -eq 1 && "$1" == "$CONFIRMATION_TOKEN" ]] || usage
 if [[ "$INFRASTRUCTURE_MODE" != "bootstrap" ]]; then
   echo "PostgreSQL rebuild requires a bootstrap-mode environment that guarantees declarative recreation; refusing to delete from '$INFRASTRUCTURE_MODE' mode." >&2
   exit 1

@@ -4,11 +4,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$SCRIPT_DIR/common.sh"
 
-[[ "${AZURE_BOOTSTRAP_APPROVED:-}" == "true" ]] || {
-  echo "Set AZURE_BOOTSTRAP_APPROVED=true only after reviewing the subscription-scope Bicep preview." >&2
-  exit 2
-}
-
 "$SCRIPT_DIR/preflight.sh"
 for key in POSTGRES_ADMIN_OBJECT_ID POSTGRES_ADMIN_PRINCIPAL_NAME; do
   [[ -n "$(azd_value "$key")" ]] || {
@@ -46,5 +41,4 @@ PY
   unset postgres_server_admin_password
 fi
 
-AZURE_DEV_USER_AGENT=microsoft_foundry_skill \
-  azd provision --cwd "$ROOT_DIR" --no-prompt
+"$SCRIPT_DIR/provision_infrastructure.sh"

@@ -51,9 +51,9 @@ IP placeholders, image tags, or resource IDs. Applying a profile does not
 authenticate, provision, deploy, or read a secret. Routine
 `make foundry-release` is hard-enforced as app-only and rejects
 `FOUNDRY_DEPLOY_MODE`. Provisioning and database rebuild/schema operations
-remain explicit. Existing environments with a public backend must run the
-one-time `make foundry-backend-internalize CONFIRM=INTERNALIZE-<backend>`
-migration before routine releases.
+remain explicit. Existing environments with a public backend must run the one-time,
+fail-closed `make foundry-backend-internalize` migration before routine
+releases.
 
 See `docs/design/deployment-flow.md` for the canonical 14-stage flow,
 command-to-stage mapping, fresh-bootstrap path, routine release path, and

@@ -13,10 +13,11 @@ make azure-iac-build
 One-time bootstrap:
 
 ```bash
-AZURE_BOOTSTRAP_APPROVED=true make azure-bootstrap
+make azure-bootstrap
 ```
 
-Bootstrap generates `POSTGRES_SERVER_ADMIN_PASSWORD` into local AZD state.
+Bootstrap previews infrastructure, fails closed on delete or replace
+operations, and generates `POSTGRES_SERVER_ADMIN_PASSWORD` into local AZD state.
 PostgreSQL uses dual Entra/password authentication. Its Azure-services firewall
 rule is a public-POC compromise, not private networking; production requires a
 private or deterministic-egress design.

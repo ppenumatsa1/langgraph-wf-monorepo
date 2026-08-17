@@ -44,9 +44,8 @@ Guidance:
 - Provision only for actual IaC changes. Application, Docker, script, and
   telemetry changes reuse existing infrastructure after the validated preview.
 - For a legacy environment whose backend still has external ingress, run the
-  separately guarded
-  `make foundry-backend-internalize CONFIRM=INTERNALIZE-<backend>` migration
-  before the first standardized routine release.
+  fail-closed `make foundry-backend-internalize` migration before the first
+  standardized routine release.
 
 ## Post-deploy verification
 
@@ -71,10 +70,11 @@ cd frontend && PLAYWRIGHT_BASE_URL="$WEB_URL" npm run test:e2e
 The only destructive server-reset path is:
 
 ```bash
-make foundry-postgres-rebuild CONFIRM=REBUILD-azpgwhcedyxchnbtmpub
+make foundry-postgres-rebuild
 ```
 
-Do not use it unless the user explicitly asked for a full server rebuild.
+It verifies the canonical subscription, resource group, server identity,
+location, bootstrap mode, and recreation capacity before deleting anything.
 
 ## Output
 

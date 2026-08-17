@@ -55,16 +55,18 @@ make azure-profile-apply
 make test-skills test-deployment-profile test-scripts azure-iac-build
 ```
 
-After reviewed bootstrap approval and PostgreSQL administrator values:
+After setting the PostgreSQL administrator values:
 
 ```bash
-AZURE_BOOTSTRAP_APPROVED=true make azure-bootstrap
+make azure-bootstrap
 make azure-postgres-schema azure-postgres-credentials
 ```
 
 Bootstrap generates the PostgreSQL server-creation password only in local AZD
-environment state. The POC database path is public with TLS and a restricted
-runtime role; production requires private networking or controlled egress.
+environment state. It previews infrastructure and stops automatically on
+delete or replace operations. The POC database path is public with TLS and a
+restricted runtime role; production requires private networking or controlled
+egress.
 
 Routine releases are app-only and immutable:
 

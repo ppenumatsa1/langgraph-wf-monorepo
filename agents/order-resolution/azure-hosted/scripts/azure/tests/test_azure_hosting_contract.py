@@ -96,9 +96,23 @@ def test_live_verification_requires_exact_apps_and_no_foundry_agents() -> None:
 
 def test_bootstrap_generates_server_admin_secret_in_local_azd_state() -> None:
     bootstrap = read("scripts/azure/bootstrap.sh")
+    provision = read("scripts/azure/provision_infrastructure.sh")
     assert "secrets.SystemRandom().shuffle" in bootstrap
     assert "azd env set POSTGRES_SERVER_ADMIN_PASSWORD" in bootstrap
     assert "postgres_server_admin_password" in bootstrap
+    assert "AZURE_BOOTSTRAP_APPROVED" not in bootstrap
+    assert 'azd provision --cwd "$ROOT_DIR" --preview --no-prompt' in provision
+    assert "Delete or Replace changes" in provision
+    assert '"$SCRIPT_DIR/provision_infrastructure.sh"' in bootstrap
+
+
+def test_operational_scripts_never_prompt_for_human_confirmation() -> None:
+    scripts = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in (ROOT / "scripts" / "azure").glob("*.sh")
+    )
+    assert "read -r -s -p" not in scripts
+    assert "AZURE_BOOTSTRAP_APPROVED" not in scripts
 
 
 def test_direct_langgraph_runtime_only() -> None:

@@ -45,3 +45,24 @@ def test_release_builds_changed_images_in_acr_and_reuses_verified_digests() -> N
     assert 'if [[ -z "$prebuilt_frontend" ]]' in build_script
     assert 'if [[ -z "$prebuilt_hosted" ]]' in build_script
     assert "Reused verified immutable backend, frontend, and hosted-agent images." in build_script
+
+
+def test_infrastructure_and_maintenance_commands_are_non_interactive() -> None:
+    provision = (ROOT / "scripts/foundry/provision_infrastructure.sh").read_text()
+    credentials = (
+        ROOT / "scripts/foundry/provision_postgres_runtime_credentials.sh"
+    ).read_text()
+    rebuild = (ROOT / "scripts/foundry/rebuild_postgres_server.sh").read_text()
+    internalize = (
+        ROOT / "scripts/foundry/internalize_backend_ingress.sh"
+    ).read_text()
+    makefile = (ROOT / "Makefile").read_text()
+
+    assert "--preview --no-prompt" in provision
+    assert "Delete or Replace changes" in provision
+    assert "provision_infrastructure.sh" in makefile
+    assert "read -r -s -p" not in credentials
+    assert "token_urlsafe" in credentials
+    assert "CONFIRMATION_TOKEN" not in rebuild
+    assert "confirmation=" not in internalize
+    assert "$(CONFIRM)" not in makefile

@@ -138,3 +138,17 @@ def test_runtime_connection_template_marks_the_url_secure() -> None:
     assert "category: 'CustomKeys'" in template
     assert "authType: 'CustomKeys'" in template
     assert "database_url: runtimeDatabaseUrl" in template
+
+
+def test_infrastructure_and_credentials_are_non_interactive() -> None:
+    provision = (ROOT / "scripts/foundry/provision_infrastructure.sh").read_text()
+    credentials = (
+        ROOT / "scripts/foundry/provision_postgres_runtime_credentials.sh"
+    ).read_text()
+    makefile = (ROOT / "Makefile").read_text()
+
+    assert "--preview --no-prompt" in provision
+    assert "Delete or Replace changes" in provision
+    assert "provision_infrastructure.sh" in makefile
+    assert "read -r -s -p" not in credentials
+    assert "token_urlsafe" in credentials

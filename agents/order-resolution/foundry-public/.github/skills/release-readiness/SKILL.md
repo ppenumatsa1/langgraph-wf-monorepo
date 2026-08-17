@@ -38,9 +38,9 @@ scripts/skills/deployment-mode-router.sh
      sequence, which fresh-packages and deploys the approved application legs.
    - Every automatic route is `app_only`; router output never authorizes
      provisioning.
-   - Provisioning is exceptional: require a reviewed preview plus
-     `FOUNDRY_INFRA_RECONCILIATION_APPROVED=true` and a non-secret
-     `FOUNDRY_INFRA_RECONCILIATION_REFERENCE` before `make foundry-provision`.
+   - Provisioning is exceptional: `make foundry-provision` runs a
+     non-interactive preview and stops automatically on delete or replace
+     changes.
 3. Run independent focused reviews in parallel when safe.
 4. Apply only material fixes from focused reviews.
 5. Run `docs-sync` after code/IaC behavior is settled.

@@ -27,14 +27,15 @@ the hosted source, deploys backend/frontend/hosted-agent legs, and then gates
 on smoke, hosted E2E, evaluation, and telemetry. Do not substitute a bare
 `azd deploy` for that release sequence.
 
-Provisioning is an exceptional reviewed reconciliation, not the automatic route
-for infra/runtime changes:
+Provisioning is an exceptional reconciliation, not the automatic route for
+infra/runtime changes:
 
 ```bash
-FOUNDRY_INFRA_RECONCILIATION_APPROVED=true \
-FOUNDRY_INFRA_RECONCILIATION_REFERENCE="<non-secret-review-reference>" \
 make foundry-provision
 ```
+
+The command runs a non-interactive preview and fails closed on delete or
+replace changes.
 
 Use `scripts/skills/deployment-mode-router.sh` to choose quick versus full
 *local validation*. Its deployment output must remain `app_only`.
