@@ -50,17 +50,17 @@ Historical Microsoft Agent Framework material is migration provenance only. It i
 | --- | --- | --- |
 | Underwriting business behavior | Preserved | Application intake, four-check fan-in, checkpoint resume, retry, idempotency, run history, and selected-run privacy contracts stay stable. |
 | LangGraph runtime | Delivered | One shared graph now runs locally and through Foundry Responses 2.0 with native PostgreSQL checkpointing. |
-| Live hosted evidence | Passed | Release `langgraph-underwriting-20260817T125122Z-final` passed smoke, E2E, Playwright, evaluation, telemetry, topology verification, and secret-free evidence aggregation. |
+| Live hosted evidence | Passed | Provenance-safe release `langgraph-underwriting-20260817T144804Z-final`, sourced from commit `ee5f1db`, passed smoke, E2E, Playwright, evaluation, telemetry, topology verification, and secret-free evidence aggregation. |
 
 ## Accepted release
 
 | Measure | Result |
 | --- | --- |
-| Hosted agent | `underwriting-hosted` version `5`, active |
-| Package through deployment | 789.353 seconds / 13.16 minutes |
-| Package through telemetry | 1,348.412 seconds / 22.47 minutes |
-| Hosted smoke | 159.904 seconds / 2.67 minutes |
-| Hosted E2E and Playwright | 246.495 seconds / 4.11 minutes |
+| Hosted agent | `underwriting-hosted` version `6`, active |
+| Package through deployment | 509.283 seconds / 8.49 minutes |
+| Package through telemetry | 1,142.407 seconds / 19.04 minutes |
+| Hosted smoke | 204.208 seconds / 3.40 minutes |
+| Hosted E2E and Playwright | 271.528 seconds / 4.53 minutes |
 | Foundry evaluation | 1/1 passed; zero failed or errored |
 | Application Insights | 76 correlated rows across all three E2E workflow runs; zero exceptions |
 | PostgreSQL lifecycle | Per-invocation hosted pools close deterministically; runtime role limit 50 |

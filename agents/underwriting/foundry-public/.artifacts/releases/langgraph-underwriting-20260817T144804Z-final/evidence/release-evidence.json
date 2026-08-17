@@ -1,0 +1,246 @@
+{
+  "evidence": {
+    "application_insights": {
+      "application_insights_name": "underwriting543d527c-ai",
+      "dependency_rows": 72,
+      "exception_rows": 0,
+      "generated_at": "2026-08-17T15:17:20Z",
+      "hosted_invocation_run_count": 3,
+      "matched_count": 3,
+      "request_rows": 4,
+      "request_run_count": 3,
+      "resource_group": "rg-langgraph-uw-foundry-public",
+      "started_at": "2026-08-17T15:13:33Z",
+      "telemetry_rows": 76,
+      "trace_rows": 0,
+      "workflow_run_ids": [
+        "run-hosted-happy-20260817151333-292757",
+        "run-hosted-retry-20260817151333-292757",
+        "run-hosted-recover-20260817151333-292757"
+      ],
+      "workflow_span_run_count": 3
+    },
+    "hosted_e2e": {
+      "api_base_url": "https://underwriting543d527c-frontend.wittystone-2a4ae4a3.eastus2.azurecontainerapps.io",
+      "backend_container_app": "underwriting543d527c-backend",
+      "backend_ingress_external": false,
+      "frontend_container_app": "underwriting543d527c-frontend",
+      "frontend_url": "https://underwriting543d527c-frontend.wittystone-2a4ae4a3.eastus2.azurecontainerapps.io",
+      "generated_at": "2026-08-17T15:14:43Z",
+      "happy_decision": "APPROVED",
+      "happy_run_id": "run-hosted-happy-20260817151333-292757",
+      "playwright_status": "passed",
+      "recovered_decision": "APPROVED",
+      "recovered_run_id": "run-hosted-recover-20260817151333-292757",
+      "resource_group": "rg-langgraph-uw-foundry-public",
+      "retry_decision": "APPROVED",
+      "retry_run_id": "run-hosted-retry-20260817151333-292757",
+      "started_at": "2026-08-17T15:13:33Z",
+      "workflow_run_ids": [
+        "run-hosted-happy-20260817151333-292757",
+        "run-hosted-retry-20260817151333-292757",
+        "run-hosted-recover-20260817151333-292757"
+      ]
+    },
+    "hosted_smoke": {
+      "conversation_ids": [
+        "conv_f9236787a929a67900euYZPf6dectZGpTR54IeDWamxVBTLWFG"
+      ],
+      "decision": "APPROVED",
+      "generated_at": "2026-08-17T15:10:11Z",
+      "mode": "happy",
+      "workflow_run_id": "run-smoke-20260817151000-285148"
+    },
+    "model_preflight": {
+      "deployments": [
+        {
+          "deployment_name": "underwriting-gpt-4-1-mini",
+          "live_capacity": 1500,
+          "live_sku": "DataZoneStandard",
+          "model": "gpt-4.1-mini",
+          "purpose": "chat",
+          "version": "2025-04-14"
+        },
+        {
+          "deployment_name": "underwriting-text-embedding-3-small",
+          "live_capacity": 120,
+          "live_sku": "DataZoneStandard",
+          "model": "text-embedding-3-small",
+          "purpose": "embeddings",
+          "version": "1"
+        },
+        {
+          "deployment_name": "underwriting-gpt-4-1-mini-evaluation",
+          "live_capacity": 250,
+          "live_sku": "DataZoneStandard",
+          "model": "gpt-4.1-mini",
+          "purpose": "evaluator",
+          "version": "2025-04-14"
+        }
+      ],
+      "evidence_type": "model_preflight",
+      "generated_at": "2026-08-17T14:54:46Z",
+      "mutation_performed": false,
+      "quota": [
+        {
+          "model": "gpt-4.1-mini",
+          "purpose": "chat",
+          "records": [
+            {
+              "current_value": 0.0,
+              "limit": 500.0,
+              "name": "OpenAI.DataZoneStandard.gpt4.1-mini-finetune",
+              "unit": "Count"
+            },
+            {
+              "current_value": 1750.0,
+              "limit": 2000.0,
+              "name": "OpenAI.DataZoneStandard.gpt4.1-mini",
+              "unit": "Count"
+            }
+          ],
+          "sku": "DataZoneStandard"
+        },
+        {
+          "model": "text-embedding-3-small",
+          "purpose": "embeddings",
+          "records": [
+            {
+              "current_value": 121.0,
+              "limit": 1000.0,
+              "name": "OpenAI.DataZoneStandard.text-embedding-3-small",
+              "unit": "Count"
+            }
+          ],
+          "sku": "DataZoneStandard"
+        },
+        {
+          "model": "gpt-4.1-mini",
+          "purpose": "evaluator",
+          "records": [
+            {
+              "current_value": 0.0,
+              "limit": 500.0,
+              "name": "OpenAI.DataZoneStandard.gpt4.1-mini-finetune",
+              "unit": "Count"
+            },
+            {
+              "current_value": 1750.0,
+              "limit": 2000.0,
+              "name": "OpenAI.DataZoneStandard.gpt4.1-mini",
+              "unit": "Count"
+            }
+          ],
+          "sku": "DataZoneStandard"
+        }
+      ],
+      "release_id": "langgraph-underwriting-20260817T144804Z-final",
+      "release_started_at": "2026-08-17T14:54:46Z",
+      "schema_version": 1,
+      "status": "passed",
+      "target": {
+        "foundry_account": "underwriting543d527cai",
+        "location": "eastus2",
+        "resource_group": "rg-langgraph-uw-foundry-public",
+        "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d"
+      }
+    },
+    "postgres_readiness": {
+      "checks": {
+        "azure_services_firewall": true,
+        "dual_authentication": true,
+        "external_schema_management": true,
+        "operator_firewall": true,
+        "required_schema_and_indexes": true,
+        "restricted_runtime_credential": true,
+        "tls_runtime_url": true
+      },
+      "evidence_type": "postgres_readiness",
+      "generated_at": "2026-08-17T15:21:05Z",
+      "target": {
+        "database_name": "underwriting",
+        "resource_group": "rg-langgraph-uw-foundry-public",
+        "server_name": "underwriting543d527cpg",
+        "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d"
+      }
+    },
+    "trace_evaluation": {
+      "conversation_ids": [
+        "conv_f9236787a929a67900euYZPf6dectZGpTR54IeDWamxVBTLWFG"
+      ],
+      "eval_id": "eval_4a08902fbbc44e66b9345df731d81167",
+      "generated_at": "2026-08-17T15:12:01Z",
+      "result_counts": {
+        "errored": 0,
+        "failed": 0,
+        "passed": 1,
+        "skipped": 0,
+        "total": 1
+      },
+      "run_id": "evalrun_c6499648559845ada8d72b18090d50e5",
+      "status": "completed",
+      "trace_evidence_generated_at": "2026-08-17T15:10:11Z"
+    },
+    "verification": {
+      "application_insights_connection": true,
+      "container_apps": {
+        "backend": {
+          "image": "underwriting543d527cacr.azurecr.io/underwriting-public-backend@sha256:24e7253f08c201c65bff21ccdaf91d4cf95ff649252bb8b4c48b49a4504088b4",
+          "name": "underwriting543d527c-backend",
+          "revision": "underwriting543d527c-backend--0000006"
+        },
+        "frontend": {
+          "image": "underwriting543d527cacr.azurecr.io/underwriting-public-frontend@sha256:9071843acd8b09fa806372e4b467aeaecee965d8ca3a7548b15aeb433876dfa2",
+          "name": "underwriting543d527c-frontend",
+          "revision": "underwriting543d527c-frontend--0000003"
+        }
+      },
+      "generated_at": "2026-08-17T15:24:21Z",
+      "hosted_agent": {
+        "application_insights_configured": true,
+        "database_url_parity": true,
+        "database_url_placeholder": true,
+        "db_schema_managed_externally": true,
+        "image": "underwriting543d527cacr.azurecr.io/underwriting-hosted@sha256:10ba1459841bd0d558e9eaea27a1d52741919a49fc1d426a7ee975e05696d9de",
+        "name": "underwriting-hosted",
+        "runtime_connection_name": "underwritingruntimesecrets",
+        "runtime_database_url_placeholder": true,
+        "status": "active",
+        "version": "6"
+      },
+      "runtime_database": {
+        "required_schema_ready": true,
+        "schema_managed_externally": true,
+        "url_parity": true
+      },
+      "runtime_secret_connection": {
+        "category": "CustomKeys",
+        "database_url_metadata_is_placeholder": true,
+        "name": "underwritingruntimesecrets"
+      },
+      "target": {
+        "location": "eastus2",
+        "resource_group": "rg-langgraph-uw-foundry-public",
+        "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d"
+      },
+      "topology": {
+        "backend_internal": true,
+        "direct_backend_publicly_reachable": false,
+        "frontend_external": true,
+        "frontend_url": "https://underwriting543d527c-frontend.wittystone-2a4ae4a3.eastus2.azurecontainerapps.io",
+        "same_origin_api": true,
+        "same_origin_health": true
+      }
+    }
+  },
+  "generated_at": "2026-08-17T15:24:22Z",
+  "release_window": {
+    "end": "2026-08-17T15:24:22Z",
+    "start": "2026-08-17T14:54:46Z"
+  },
+  "target": {
+    "location": "eastus2",
+    "resource_group": "rg-langgraph-uw-foundry-public",
+    "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d"
+  }
+}

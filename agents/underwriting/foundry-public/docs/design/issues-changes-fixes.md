@@ -120,20 +120,25 @@ The imported underwriting MAF docs, instructions, and release ledger were mined 
 | Frontend proxy returned HTML | Backend ingress retained target port 80 while FastAPI listens on 8000 | Backend deployment converges target port 8000 and verifies same-origin JSON health. |
 | Hosted workflows exhausted PostgreSQL connections | Loop-cached services retained checkpointer pools and the runtime role limit was 20 | Hosted services are created and closed per invocation, startup is inside cleanup scope, pools are bounded, and the justified role limit is 50. |
 | Final evidence rejected a valid lifecycle | One 15-minute ceiling incorrectly covered deployment plus serial smoke/E2E/telemetry | Authority now enforces a 15-minute package-to-deployment budget and a separate 30-minute package-to-telemetry lifecycle budget. |
+| Successful deployment lacked exact source provenance | The prior release was built from an uncommitted worktree while its record referenced the previous `HEAD` | Releases now require a clean lane, bind each image to a deterministic source fingerprint, and reject reused digests without the matching ACR source tag. |
+| First provenance-safe build missed the deployment SLO by 2.850 seconds | Fresh ACR builds plus hosted activation and Container Apps deployment took 902.850 seconds / 15.05 minutes | The source-bound immutable images were retained, verified, and reused for the unchanged-source retry; the accepted release completed package-to-deployment in 509.283 seconds / 8.49 minutes. |
+| Evidence files could be registered without proving gate semantics | Aggregation checked freshness and secret safety but not each gate's success fields | Aggregation now validates canonical target, topology, readiness, E2E, smoke, evaluation, and telemetry success before registering release gates. |
 
 ### Accepted release evidence
 
-- Release: `langgraph-underwriting-20260817T125122Z-final`
-- Hosted agent: `underwriting-hosted` version `5`, active
-- Package to deployment: `789.353s` / `13.16m`
-- Package to telemetry: `1,348.412s` / `22.47m`
-- Hosted smoke: `159.904s` / `2.67m`
-- Hosted E2E plus deployed Playwright: `246.495s` / `4.11m`
+- Release: `langgraph-underwriting-20260817T144804Z-final`
+- Source commit: `ee5f1dbf78be0d9428de1971f5b37050db604836`
+- Hosted agent: `underwriting-hosted` version `6`, active
+- Package to deployment: `509.283s` / `8.49m`
+- Package to telemetry: `1,142.407s` / `19.04m`
+- Hosted smoke: `204.208s` / `3.40m`
+- Hosted E2E plus deployed Playwright: `271.528s` / `4.53m`
 - Foundry evaluation: `1/1` passed, zero failed or errored
 - Application Insights: `76` correlated rows for all three hosted E2E runs,
   zero exception rows
-- PostgreSQL: zero stale runtime sessions before release; bounded at `17/50`
-  after all gates
+- PostgreSQL: readiness, schema/index parity, TLS, external schema management,
+  dual authentication, restricted runtime credential, and bounded pool
+  configuration passed
 - Topology verification: external frontend, internal backend, same-origin
   health/API, direct backend not publicly reachable
 - Evidence: release-local, secret-free, hashed, and finalized successfully

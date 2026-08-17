@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-08-17T15:17:20Z",
+  "resource_group": "rg-langgraph-uw-foundry-public",
+  "application_insights_name": "underwriting543d527c-ai",
+  "started_at": "2026-08-17T15:13:33Z",
+  "workflow_run_ids": [
+    "run-hosted-happy-20260817151333-292757",
+    "run-hosted-retry-20260817151333-292757",
+    "run-hosted-recover-20260817151333-292757"
+  ],
+  "matched_count": 3,
+  "telemetry_rows": 76,
+  "request_rows": 4,
+  "dependency_rows": 72,
+  "trace_rows": 0,
+  "request_run_count": 3,
+  "hosted_invocation_run_count": 3,
+  "workflow_span_run_count": 3,
+  "exception_rows": 0
+}

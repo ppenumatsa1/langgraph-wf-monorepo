@@ -1,0 +1,22 @@
+{
+  "generated_at": "2026-08-17T15:14:43Z",
+  "started_at": "2026-08-17T15:13:33Z",
+  "frontend_url": "https://underwriting543d527c-frontend.wittystone-2a4ae4a3.eastus2.azurecontainerapps.io",
+  "api_base_url": "https://underwriting543d527c-frontend.wittystone-2a4ae4a3.eastus2.azurecontainerapps.io",
+  "backend_ingress_external": false,
+  "resource_group": "rg-langgraph-uw-foundry-public",
+  "backend_container_app": "underwriting543d527c-backend",
+  "frontend_container_app": "underwriting543d527c-frontend",
+  "workflow_run_ids": [
+    "run-hosted-happy-20260817151333-292757",
+    "run-hosted-retry-20260817151333-292757",
+    "run-hosted-recover-20260817151333-292757"
+  ],
+  "happy_run_id": "run-hosted-happy-20260817151333-292757",
+  "retry_run_id": "run-hosted-retry-20260817151333-292757",
+  "recovered_run_id": "run-hosted-recover-20260817151333-292757",
+  "happy_decision": "APPROVED",
+  "retry_decision": "APPROVED",
+  "recovered_decision": "APPROVED",
+  "playwright_status": "passed"
+}

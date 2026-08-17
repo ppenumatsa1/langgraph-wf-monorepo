@@ -1,0 +1,17 @@
+{
+  "generated_at": "2026-08-17T15:12:01Z",
+  "trace_evidence_generated_at": "2026-08-17T15:10:11Z",
+  "status": "completed",
+  "eval_id": "eval_4a08902fbbc44e66b9345df731d81167",
+  "run_id": "evalrun_c6499648559845ada8d72b18090d50e5",
+  "conversation_ids": [
+    "conv_f9236787a929a67900euYZPf6dectZGpTR54IeDWamxVBTLWFG"
+  ],
+  "result_counts": {
+    "errored": 0,
+    "failed": 0,
+    "passed": 1,
+    "total": 1,
+    "skipped": 0
+  }
+}

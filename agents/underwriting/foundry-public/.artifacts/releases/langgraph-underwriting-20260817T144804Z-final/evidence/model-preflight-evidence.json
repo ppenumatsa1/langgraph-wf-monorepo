@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "evidence_type": "model_preflight",
+  "status": "passed",
+  "release_id": "langgraph-underwriting-20260817T144804Z-final",
+  "release_started_at": "2026-08-17T14:54:46Z",
+  "generated_at": "2026-08-17T14:54:46Z",
+  "target": {
+    "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d",
+    "resource_group": "rg-langgraph-uw-foundry-public",
+    "location": "eastus2",
+    "foundry_account": "underwriting543d527cai"
+  },
+  "deployments": [
+    {
+      "purpose": "chat",
+      "deployment_name": "underwriting-gpt-4-1-mini",
+      "model": "gpt-4.1-mini",
+      "version": "2025-04-14",
+      "live_sku": "DataZoneStandard",
+      "live_capacity": 1500
+    },
+    {
+      "purpose": "embeddings",
+      "deployment_name": "underwriting-text-embedding-3-small",
+      "model": "text-embedding-3-small",
+      "version": "1",
+      "live_sku": "DataZoneStandard",
+      "live_capacity": 120
+    },
+    {
+      "purpose": "evaluator",
+      "deployment_name": "underwriting-gpt-4-1-mini-evaluation",
+      "model": "gpt-4.1-mini",
+      "version": "2025-04-14",
+      "live_sku": "DataZoneStandard",
+      "live_capacity": 250
+    }
+  ],
+  "quota": [
+    {
+      "purpose": "chat",
+      "model": "gpt-4.1-mini",
+      "sku": "DataZoneStandard",
+      "records": [
+        {
+          "name": "OpenAI.DataZoneStandard.gpt4.1-mini-finetune",
+          "current_value": 0.0,
+          "limit": 500.0,
+          "unit": "Count"
+        },
+        {
+          "name": "OpenAI.DataZoneStandard.gpt4.1-mini",
+          "current_value": 1750.0,
+          "limit": 2000.0,
+          "unit": "Count"
+        }
+      ]
+    },
+    {
+      "purpose": "embeddings",
+      "model": "text-embedding-3-small",
+      "sku": "DataZoneStandard",
+      "records": [
+        {
+          "name": "OpenAI.DataZoneStandard.text-embedding-3-small",
+          "current_value": 121.0,
+          "limit": 1000.0,
+          "unit": "Count"
+        }
+      ]
+    },
+    {
+      "purpose": "evaluator",
+      "model": "gpt-4.1-mini",
+      "sku": "DataZoneStandard",
+      "records": [
+        {
+          "name": "OpenAI.DataZoneStandard.gpt4.1-mini-finetune",
+          "current_value": 0.0,
+          "limit": 500.0,
+          "unit": "Count"
+        },
+        {
+          "name": "OpenAI.DataZoneStandard.gpt4.1-mini",
+          "current_value": 1750.0,
+          "limit": 2000.0,
+          "unit": "Count"
+        }
+      ]
+    }
+  ],
+  "mutation_performed": false
+}

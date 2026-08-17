@@ -1,0 +1,51 @@
+{
+  "generated_at": "2026-08-17T15:24:21Z",
+  "target": {
+    "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d",
+    "resource_group": "rg-langgraph-uw-foundry-public",
+    "location": "eastus2"
+  },
+  "topology": {
+    "frontend_url": "https://underwriting543d527c-frontend.wittystone-2a4ae4a3.eastus2.azurecontainerapps.io",
+    "frontend_external": true,
+    "backend_internal": true,
+    "same_origin_health": true,
+    "same_origin_api": true,
+    "direct_backend_publicly_reachable": false
+  },
+  "container_apps": {
+    "backend": {
+      "name": "underwriting543d527c-backend",
+      "revision": "underwriting543d527c-backend--0000006",
+      "image": "underwriting543d527cacr.azurecr.io/underwriting-public-backend@sha256:24e7253f08c201c65bff21ccdaf91d4cf95ff649252bb8b4c48b49a4504088b4"
+    },
+    "frontend": {
+      "name": "underwriting543d527c-frontend",
+      "revision": "underwriting543d527c-frontend--0000003",
+      "image": "underwriting543d527cacr.azurecr.io/underwriting-public-frontend@sha256:9071843acd8b09fa806372e4b467aeaecee965d8ca3a7548b15aeb433876dfa2"
+    }
+  },
+  "hosted_agent": {
+    "application_insights_configured": true,
+    "database_url_parity": true,
+    "database_url_placeholder": true,
+    "db_schema_managed_externally": true,
+    "image": "underwriting543d527cacr.azurecr.io/underwriting-hosted@sha256:10ba1459841bd0d558e9eaea27a1d52741919a49fc1d426a7ee975e05696d9de",
+    "name": "underwriting-hosted",
+    "runtime_connection_name": "underwritingruntimesecrets",
+    "runtime_database_url_placeholder": true,
+    "status": "active",
+    "version": "6"
+  },
+  "runtime_secret_connection": {
+    "name": "underwritingruntimesecrets",
+    "category": "CustomKeys",
+    "database_url_metadata_is_placeholder": true
+  },
+  "application_insights_connection": true,
+  "runtime_database": {
+    "url_parity": true,
+    "required_schema_ready": true,
+    "schema_managed_externally": true
+  }
+}

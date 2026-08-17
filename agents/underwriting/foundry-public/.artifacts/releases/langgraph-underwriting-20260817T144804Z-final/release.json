@@ -1,0 +1,187 @@
+{
+  "artifacts": [
+    {
+      "path": "evidence/foundry-verify.json",
+      "sha256": "19e8f7bc6967e0a74d7bce356e0e87ee3302c9f8ea6633ac45147ff4089075bd",
+      "size_bytes": 1941
+    },
+    {
+      "path": "evidence/postgres-readiness-evidence.json",
+      "sha256": "a4643b8ae5dcf50edc44f06cee33670b8b7a6d939e60f56a59fbc26c03289bd2",
+      "size_bytes": 577
+    },
+    {
+      "path": "evidence/model-preflight-evidence.json",
+      "sha256": "1714ba3e4e93625f027538ae0a620e766475e11adaff11660cf87e6752db84fa",
+      "size_bytes": 2471
+    },
+    {
+      "path": "evidence/hosted-e2e-evidence.json",
+      "sha256": "f0703d6fa1c4d7db3bed057b7f79ee1a7f569650a00080cf954e1076d589a8b6",
+      "size_bytes": 1001
+    },
+    {
+      "path": "evidence/hosted-smoke-evidence.json",
+      "sha256": "3024911481a52fe7551fbfd1a7b32549643a1c1992d7fd444ebfb0847f2a99f3",
+      "size_bytes": 237
+    },
+    {
+      "path": "evidence/foundry-trace-eval.json",
+      "sha256": "851eacfb0a0b7856fbb1f53c8fa9f011577396006fb603e245048f2c6a9536f0",
+      "size_bytes": 438
+    },
+    {
+      "path": "evidence/appinsights-evidence.json",
+      "sha256": "386a61214b41cda34546012803b51d98346489b45c56e50d40506b69d0ac419a",
+      "size_bytes": 593
+    },
+    {
+      "path": "evidence/release-evidence.json",
+      "sha256": "85017ac1eb2e541f9c4831163244d41668f899dd75ba123207247de151a46ea7",
+      "size_bytes": 8652
+    }
+  ],
+  "completed_at": "2026-08-17T15:24:22.199Z",
+  "contract": "underwriting-release/v1",
+  "durable_artifact": null,
+  "error": null,
+  "execution": {
+    "executor": "local-operator",
+    "workflow_run_id": null
+  },
+  "extensions": {
+    "release_timing": {
+      "app_only": {
+        "duration_ms": 1142407,
+        "ended_at": "2026-08-17T15:17:20.352Z",
+        "started_at": "2026-08-17T14:58:17.945Z",
+        "status": "succeeded"
+      },
+      "app_only_duration_ms": 1142407,
+      "app_only_started_at": "2026-08-17T14:58:17.945Z",
+      "stages": {
+        "aca_deployment": {
+          "duration_ms": 304005,
+          "ended_at": "2026-08-17T15:06:47.228Z",
+          "started_at": "2026-08-17T15:01:43.223Z",
+          "status": "succeeded"
+        },
+        "deployed_e2e": {
+          "duration_ms": 271528,
+          "ended_at": "2026-08-17T15:14:43.168Z",
+          "started_at": "2026-08-17T15:10:11.640Z",
+          "status": "succeeded"
+        },
+        "deployment_verification": {
+          "duration_ms": 421315,
+          "ended_at": "2026-08-17T15:24:21.855Z",
+          "started_at": "2026-08-17T15:17:20.540Z",
+          "status": "succeeded"
+        },
+        "evaluation": {
+          "duration_ms": 110629,
+          "ended_at": "2026-08-17T15:12:02.262Z",
+          "started_at": "2026-08-17T15:10:11.633Z",
+          "status": "succeeded"
+        },
+        "final_evidence": {
+          "duration_ms": 289,
+          "ended_at": "2026-08-17T15:24:22.195Z",
+          "started_at": "2026-08-17T15:24:21.906Z",
+          "status": "succeeded"
+        },
+        "hosted_activation": {
+          "duration_ms": 15338,
+          "ended_at": "2026-08-17T15:01:43.159Z",
+          "started_at": "2026-08-17T15:01:27.821Z",
+          "status": "succeeded"
+        },
+        "image_build": {
+          "duration_ms": 188962,
+          "ended_at": "2026-08-17T15:01:27.747Z",
+          "started_at": "2026-08-17T14:58:18.785Z",
+          "status": "succeeded"
+        },
+        "package_build": {
+          "duration_ms": 656,
+          "ended_at": "2026-08-17T14:58:18.601Z",
+          "started_at": "2026-08-17T14:58:17.945Z",
+          "status": "succeeded"
+        },
+        "smoke": {
+          "duration_ms": 204208,
+          "ended_at": "2026-08-17T15:10:11.575Z",
+          "started_at": "2026-08-17T15:06:47.367Z",
+          "status": "succeeded"
+        },
+        "telemetry": {
+          "duration_ms": 157113,
+          "ended_at": "2026-08-17T15:17:20.352Z",
+          "started_at": "2026-08-17T15:14:43.239Z",
+          "status": "succeeded"
+        }
+      },
+      "telemetry_succeeded_at": "2026-08-17T15:17:20.352Z",
+      "version": 1
+    },
+    "required_gates": [
+      "verification",
+      "postgres_readiness",
+      "model_preflight",
+      "hosted_e2e",
+      "hosted_smoke",
+      "trace_evaluation",
+      "application_insights"
+    ]
+  },
+  "failed_stage": null,
+  "gates": {
+    "application_insights": {
+      "artifact": "evidence/appinsights-evidence.json",
+      "status": "succeeded"
+    },
+    "hosted_e2e": {
+      "artifact": "evidence/hosted-e2e-evidence.json",
+      "status": "succeeded"
+    },
+    "hosted_smoke": {
+      "artifact": "evidence/hosted-smoke-evidence.json",
+      "status": "succeeded"
+    },
+    "model_preflight": {
+      "artifact": "evidence/model-preflight-evidence.json",
+      "status": "succeeded"
+    },
+    "postgres_readiness": {
+      "artifact": "evidence/postgres-readiness-evidence.json",
+      "status": "succeeded"
+    },
+    "trace_evaluation": {
+      "artifact": "evidence/foundry-trace-eval.json",
+      "status": "succeeded"
+    },
+    "verification": {
+      "artifact": "evidence/foundry-verify.json",
+      "status": "succeeded"
+    }
+  },
+  "lane": "underwriting-foundry-public",
+  "project": "underwriting",
+  "release_id": "langgraph-underwriting-20260817T144804Z-final",
+  "schema_version": 1,
+  "source": {
+    "commit": "ee5f1dbf78be0d9428de1971f5b37050db604836",
+    "repository": "local-worktree"
+  },
+  "started_at": "2026-08-17T14:48:05.390Z",
+  "status": "succeeded",
+  "target": {
+    "environment": "underwriting-foundry-public",
+    "location": "eastus2",
+    "profile": "deployment/profiles/foundry-public.env",
+    "profile_sha256": "6305517f849ad1256d42cccc56346407a4a2b82ec77c83c8e7dfe4f2618c0677",
+    "resource_group": "rg-langgraph-uw-foundry-public",
+    "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d"
+  },
+  "updated_at": "2026-08-17T15:24:22.199Z"
+}

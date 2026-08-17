@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-08-17T15:21:05Z",
+  "evidence_type": "postgres_readiness",
+  "target": {
+    "subscription_id": "7df95e88-701c-4693-af77-3159f83b558d",
+    "resource_group": "rg-langgraph-uw-foundry-public",
+    "server_name": "underwriting543d527cpg",
+    "database_name": "underwriting"
+  },
+  "checks": {
+    "tls_runtime_url": true,
+    "restricted_runtime_credential": true,
+    "required_schema_and_indexes": true,
+    "external_schema_management": true,
+    "dual_authentication": true,
+    "azure_services_firewall": true,
+    "operator_firewall": true
+  }
+}
