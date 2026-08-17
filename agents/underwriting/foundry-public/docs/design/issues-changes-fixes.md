@@ -66,6 +66,9 @@ The imported underwriting MAF docs, instructions, and release ledger were mined 
 
 - Rewrote lane README, agents guidance, Copilot instructions, design docs, manual testing guide, and issues summary around the approved LangGraph runtime direction.
 - Replaced lane-owned MAF workflow skills with LangGraph documentation, LangGraph + Foundry runtime, and underwriting evaluation skills.
+- Removed duplicate generic Agent Framework, Foundry evaluation, and TypeScript
+  setup/update skills; added a complete reviewed provenance lock and automated
+  skill inventory, frontmatter, stale-identifier, and local-link validation.
 - Updated frontend copy and Playwright rubric wording to describe LangGraph runs, durable checkpoints, and the strict selected-run allowlist without changing the browser contract.
 - Replaced the historical delivery ledger with this fresh LangGraph migration ledger.
 

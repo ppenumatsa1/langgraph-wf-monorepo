@@ -37,7 +37,7 @@ cd frontend && PLAYWRIGHT_BASE_URL="$WEB_URL" npm run test:e2e
 
 ## Do not use quick validation when
 
-- files under `backend/app/maf/**`, `backend/foundry/**`, `backend/app/infrastructure/**`, `infra/**`, `scripts/foundry/**`, `backend/eval.yaml`, or `backend/.foundry/**` changed
+- files under `backend/app/langgraph/**`, `backend/foundry/**`, `backend/app/infrastructure/**`, `infra/**`, `scripts/foundry/**`, `backend/eval.yaml`, or `backend/.foundry/**` changed
 - fan-out/fan-in, retry, crash/resume, checkpoint, idempotency, PostgreSQL, AG-UI, CopilotKit, or telemetry contracts changed
 - public deployment or hosted release evidence is in scope
 

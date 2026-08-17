@@ -68,7 +68,19 @@ this lane.
 | --- | --- | --- |
 | Business behavior and contracts | Approved | Low-risk completion, HITL gating, privacy, and SSE/API contracts stay stable. |
 | LangGraph runtime design | Approved | Docs now describe the shared `StateGraph`, native interrupts, and `AsyncPostgresSaver` target shape. |
-| Live deployment evidence | Regenerate after cutover | Historical MAF-era release evidence is not reused as LangGraph evidence. |
+| Live deployment evidence | Passed | Release `langgraph-order-resolution-20260816T200419Z-492664` passed deployment verification, hosted smoke, three-conversation E2E, Foundry evaluation, Application Insights telemetry, and secret-free evidence aggregation. |
+
+## Accepted release
+
+| Measure | Result |
+| --- | --- |
+| Release | `langgraph-order-resolution-20260816T200419Z-492664` |
+| Package through deployment | 666.843 seconds / 11.11 minutes |
+| Package through telemetry | 888.544 seconds / 14.81 minutes |
+| Hosted smoke | 12.465 seconds / 0.21 minutes |
+| Hosted E2E | 43.075 seconds / 0.72 minutes |
+| Foundry evaluation | 3/3 passed; zero failed or errored |
+| Application Insights | 307 correlated rows across all three hosted E2E conversations |
 
 ## Release and platform guardrails
 

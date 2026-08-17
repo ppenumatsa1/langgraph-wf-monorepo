@@ -87,8 +87,6 @@ Load only the relevant implementation skill for the task:
 - `postgres-psycopg-py`
 - `ag-ui-streaming-fastapi-py`
 - `ag-ui-react-integration-ts`
-- `typescript-setup`
-- `typescript-update`
 - `e2e-rubric`
 
 ## E2E and hosted release baseline

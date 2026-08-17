@@ -11,7 +11,8 @@ Use this skill when changing streaming APIs, event envelopes, or backend-to-fron
 
 - Endpoint surface: `POST /api/v1/underwriting/ag-ui`
 - Route ownership: `backend/app/api/v1/routes/underwriting.py`
-- Projection helpers: `backend/app/maf/agui.py`
+- Stream router: `backend/app/api/v1/routers/agui.py`
+- Durable projections: `backend/app/modules/underwriting/projections.py`
 - Durable read models: run, state, events, and checkpoints endpoints remain the source of truth
 
 ## Guardrails

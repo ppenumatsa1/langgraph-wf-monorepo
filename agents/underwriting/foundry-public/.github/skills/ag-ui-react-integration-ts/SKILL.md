@@ -7,11 +7,12 @@ description: Implement and review React TypeScript consumers for AG-UI-compatibl
 
 Use this skill when changing frontend streaming consumption or UI behavior tied to workflow events.
 
-## Official supporting skills
+## Supporting guidance
 
-- Use `typescript-setup` for repository TypeScript boundary decisions.
-- Use `typescript-update` when upgrading TypeScript or resolving compiler diagnostics.
-- Keep AG-UI and CopilotKit runtime behavior guidance in this skill; the TypeScript skills are supporting references.
+- Use the checked-in TypeScript configuration and frontend package scripts as
+  the repository authority for compiler and dependency changes.
+- Keep AG-UI, CopilotKit, and frontend TypeScript behavior guidance in this
+  skill rather than introducing generic duplicate skills.
 
 ## Scope
 
@@ -35,4 +36,3 @@ Use this skill when changing frontend streaming consumption or UI behavior tied 
 2. `cd frontend && npm run lint`
 3. `make test-e2e`
 4. Update `docs/design/e2e-rubric.md` and `docs/design/schema-io-telemetry.md` when operator contracts change.
-

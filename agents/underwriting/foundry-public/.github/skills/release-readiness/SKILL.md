@@ -14,7 +14,7 @@ Compose focused skills instead of doing one broad review. Run only the skills re
 ## Skill routing
 
 1. Backend, workflow, persistence, or hosted-relay changes -> `backend-boundary-review`
-2. AG-UI, CopilotKit, or frontend TypeScript changes -> `ag-ui-streaming-fastapi-py`, `ag-ui-react-integration-ts`, `typescript-setup`, `typescript-update`, or `e2e-rubric` as applicable
+2. AG-UI, CopilotKit, or frontend TypeScript changes -> `ag-ui-streaming-fastapi-py`, `ag-ui-react-integration-ts`, or `e2e-rubric` as applicable
 3. Documentation-impacting changes -> `docs-sync`
 4. Low-risk app-only changes -> `quick-validation`
 5. Shared local behavior changes -> `local-validation`
@@ -54,4 +54,3 @@ Report:
 - commands run
 - blockers
 - final readiness status
-

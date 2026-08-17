@@ -23,10 +23,11 @@ This phase is lineage only; it is not the approved runtime end state.
 
 ## Phase 3 (completed): Hosted validation and evidence regeneration
 
-- Deployed Foundry hosted agent version 5 from an immutable image digest.
+- Deployed Foundry hosted agent version 6 from a source-bound immutable image digest.
 - Passed hosted smoke, happy/retry/`medical_check` crash-resume E2E, and deployed Playwright.
 - Passed Foundry trace evaluation, Application Insights correlation, topology verification, and secret-free evidence aggregation.
-- Accepted release: `langgraph-underwriting-20260817T125122Z-final`.
+- Accepted release: `langgraph-underwriting-20260817T144804Z-final`, sourced
+  from commit `ee5f1dbf78be0d9428de1971f5b37050db604836`.
 
 ## Next-phase candidates
 

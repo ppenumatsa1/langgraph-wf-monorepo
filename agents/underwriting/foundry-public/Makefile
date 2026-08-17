@@ -21,7 +21,7 @@ endif
 .PHONY: help bootstrap up down logs db-reset install run run-fail-once run-crash resume state events checkpoints \
 	backend-dev frontend-install frontend-dev \
 	test test-backend test-frontend test-scripts test-deployment-profile test-e2e \
-	lint lint-backend lint-frontend format format-check quality validate-quick validate-full \
+	lint lint-backend lint-frontend format format-check quality validate-skills validate-quick validate-full \
 	foundry-profile-apply foundry-bootstrap foundry-bootstrap-env foundry-package-validation-env foundry-iac-build foundry-provision foundry-postgres-rebuild foundry-postgres-schema \
 	foundry-postgres-credentials foundry-postgres-readiness foundry-backend-deploy foundry-frontend-deploy \
 	foundry-release-readiness foundry-model-preflight foundry-runtime-connection foundry-rbac foundry-package \
@@ -53,6 +53,7 @@ help:
 >@printf "  make lint                         - Run backend + frontend lint checks\n"
 >@printf "  make format                       - Format backend code\n"
 >@printf "  make quality                      - Run lint + format-check + unit/script tests\n"
+>@printf "  make validate-skills              - Validate lane skill inventory, provenance, and links\n"
 >@printf "  make validate-quick               - Run the quick validation lane\n"
 >@printf "  make validate-full                - Run the full validation lane\n"
 >@printf "  make test                         - Run backend + frontend tests\n"
@@ -221,6 +222,10 @@ quality:
 >cd $(ROOT) && $(MAKE) format-check
 >cd $(ROOT) && $(MAKE) test
 >cd $(ROOT) && $(MAKE) test-scripts
+>cd $(ROOT) && $(MAKE) validate-skills
+
+validate-skills:
+>cd $(ROOT) && $(PY) scripts/skills/validate-skills.py
 
 validate-quick:
 >@if [[ -n "$${PLAYWRIGHT_BASE_URL:-}" ]]; then \
@@ -236,6 +241,7 @@ validate-full:
 >$(MAKE) format-check
 >$(MAKE) test
 >$(MAKE) test-scripts
+>$(MAKE) validate-skills
 >$(MAKE) test-e2e
 
 frontend-dev:

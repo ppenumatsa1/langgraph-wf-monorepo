@@ -15,17 +15,26 @@ This lane uses a LangGraph-first skill baseline.
 - `backend-boundary-review`
 - `release-readiness`
 
-## Selectively vendored Microsoft catalog skills
+## Upstream implementation skills
 
-The following complete Microsoft catalog skill directories were selectively
-copied from [`microsoft/skills`](https://github.com/microsoft/skills) at
-revision `e58528db9a006528a5fb0a2c029790fa6a9a7c0e`:
+The Azure and Foundry skills were selectively refreshed from
+[`microsoft/skills`](https://github.com/microsoft/skills) at revision
+`e58528db9a006528a5fb0a2c029790fa6a9a7c0e`:
 
 - `microsoft-foundry`
-- `agent-framework-azure-ai-py`
+- `azure-ai-projects-py`
+- `azure-identity-py`
+- `azure-monitor-opentelemetry-py`
+- `fastapi-router-py`
+- `pydantic-models-py`
 
-The vendored Agent Framework skill remains provenance for hosted Azure AI
-integration patterns only. The lane-owned LangGraph skills above are the
-architectural authority for underwriting workflow, validation, and release
-behavior.
+`langgraph-docs` was refreshed from `langchain-ai/deepagents` revision
+`d01e4ac5bf36752e5c89c1c6645d486282cb611f`.
 
+Generic Agent Framework, duplicate Foundry evaluation, and generic TypeScript
+setup/update skills are intentionally excluded. The lane-owned LangGraph,
+underwriting evaluation, AG-UI, and release skills are the architectural
+authority.
+
+Every top-level skill is recorded in `provenance.lock.json` and validated by
+`make validate-skills`.
