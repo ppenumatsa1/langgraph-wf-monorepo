@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-08-16",
+  "skills": {
+    "ag-ui-react-integration-ts": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/ag-ui-react-integration-ts",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository-specific React selected-thread AG-UI and CopilotKit integration guidance."
+    },
+    "ag-ui-streaming-fastapi-py": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/ag-ui-streaming-fastapi-py",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository-specific FastAPI streaming, redaction, and additive AG-UI projection guidance."
+    },
+    "azure-ai-projects-py": {
+      "kind": "upstream",
+      "source_repo": "microsoft/skills",
+      "source_path": ".github/plugins/azure-sdk-python/skills/azure-ai-projects-py",
+      "source_commit_or_sha": "e58528db9a006528a5fb0a2c029790fa6a9a7c0e",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Authoritative Azure AI Projects SDK skill for Foundry project, deployment, dataset, and evaluation operations.",
+      "preserve_complete_directory": true
+    },
+    "azure-deployment": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/azure-deployment",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository deployment execution guidance for approved Azure releases."
+    },
+    "azure-identity-py": {
+      "kind": "upstream",
+      "source_repo": "microsoft/skills",
+      "source_path": ".github/plugins/azure-sdk-python/skills/azure-identity-py",
+      "source_commit_or_sha": "e58528db9a006528a5fb0a2c029790fa6a9a7c0e",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Authoritative Azure Identity SDK skill for DefaultAzureCredential, managed identity, and token acquisition."
+    },
+    "azure-monitor-opentelemetry-py": {
+      "kind": "upstream",
+      "source_repo": "microsoft/skills",
+      "source_path": ".github/plugins/azure-sdk-python/skills/azure-monitor-opentelemetry-py",
+      "source_commit_or_sha": "e58528db9a006528a5fb0a2c029790fa6a9a7c0e",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Authoritative Azure Monitor OpenTelemetry guidance for Application Insights instrumentation.",
+      "preserve_complete_directory": false
+    },
+    "azure-telemetry-validation": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/azure-telemetry-validation",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository-specific hosted telemetry validation and correlation checks."
+    },
+    "azure-validation": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/azure-validation",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository Azure readiness and live endpoint validation guidance."
+    },
+    "backend-boundary-review": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/backend-boundary-review",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository backend ownership and contract review guidance."
+    },
+    "design-review": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/design-review",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository deterministic final review and validation gate."
+    },
+    "docs-sync": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/docs-sync",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository documentation synchronization guidance after behavior changes."
+    },
+    "e2e-rubric": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/e2e-rubric",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository operator-focused E2E rubric for SSE, HITL, AG-UI, and privacy checks."
+    },
+    "fastapi-router-py": {
+      "kind": "upstream",
+      "source_repo": "microsoft/skills",
+      "source_path": ".github/plugins/azure-sdk-python/skills/fastapi-router-py",
+      "source_commit_or_sha": "e58528db9a006528a5fb0a2c029790fa6a9a7c0e",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Authoritative FastAPI router patterns for Python services.",
+      "preserve_complete_directory": true
+    },
+    "iac-review": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/iac-review",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository infrastructure and deployment asset review guidance."
+    },
+    "langgraph-docs": {
+      "kind": "upstream",
+      "source_repo": "langchain-ai/deepagents",
+      "source_path": "libs/cli/examples/skills/langgraph-docs",
+      "source_commit_or_sha": "d01e4ac5bf36752e5c89c1c6645d486282cb611f",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Official LangGraph documentation-fetch workflow skill adapted for this repository."
+    },
+    "langgraph-foundry-py": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/langgraph-foundry-py",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository-owned LangGraph + Foundry hosted-agent implementation guidance."
+    },
+    "local-validation": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/local-validation",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository local validation gate guidance."
+    },
+    "microsoft-foundry": {
+      "kind": "upstream",
+      "source_repo": "microsoft/skills",
+      "source_path": ".github/plugins/azure-skills/skills/microsoft-foundry",
+      "source_commit_or_sha": "e58528db9a006528a5fb0a2c029790fa6a9a7c0e",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Authoritative Microsoft Foundry lifecycle skill for hosted agents, evaluation, traces, and troubleshooting.",
+      "preserve_complete_directory": true
+    },
+    "order-resolution-evaluation": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/order-resolution-evaluation",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository-specific deterministic and hosted evaluation workflow guidance."
+    },
+    "order-resolution-frontend-ts": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/order-resolution-frontend-ts",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository-specific frontend TypeScript and React guidance."
+    },
+    "postgres-psycopg-py": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/postgres-psycopg-py",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository PostgreSQL, Psycopg, and LangGraph checkpointer guidance."
+    },
+    "pydantic-models-py": {
+      "kind": "upstream",
+      "source_repo": "microsoft/skills",
+      "source_path": ".github/plugins/azure-sdk-python/skills/pydantic-models-py",
+      "source_commit_or_sha": "e58528db9a006528a5fb0a2c029790fa6a9a7c0e",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Authoritative Pydantic v2 multi-model schema guidance.",
+      "preserve_complete_directory": true
+    },
+    "quick-validation": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/quick-validation",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository fast validation guidance for low-risk app-only redeployments."
+    },
+    "release-readiness": {
+      "kind": "local",
+      "source_repo": "langgraph-wf-monorepo",
+      "source_path": "agents/order-resolution/azure-hosted/.github/skills/release-readiness",
+      "source_commit_or_sha": "workspace-uncommitted",
+      "license": "MIT",
+      "reviewed_on": "2026-08-16",
+      "purpose": "Repository orchestration guidance for focused skills before handoff or release."
+    }
+  }
+}

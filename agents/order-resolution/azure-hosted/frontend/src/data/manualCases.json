@@ -1,0 +1,121 @@
+[
+  {
+    "id": "ORD-1001",
+    "prompt": "Order ORD-1001 arrived late by 1 day. What can you do?",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": false,
+    "required_events": ["workflow.stage", "tool.call", "workflow.output"],
+    "forbidden_events": ["hitl.request"]
+  },
+  {
+    "id": "ORD-1002",
+    "prompt": "Order ORD-1002 has the wrong item in the box.",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": false,
+    "required_events": ["workflow.stage", "tool.call", "workflow.output"],
+    "forbidden_events": ["hitl.request"]
+  },
+  {
+    "id": "ORD-1003",
+    "prompt": "Order ORD-1003 is delayed and I want the policy explanation before any action.",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": false,
+    "required_events": ["workflow.stage", "tool.call", "workflow.output"],
+    "forbidden_events": ["hitl.request"]
+  },
+  {
+    "id": "ORD-1004",
+    "prompt": "Order ORD-1004 arrived damaged and broken.",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": true,
+    "decision": "approve",
+    "required_events": [
+      "workflow.stage",
+      "tool.call",
+      "checkpoint.created",
+      "hitl.request",
+      "hitl.response",
+      "workflow.output"
+    ]
+  },
+  {
+    "id": "ORD-1005",
+    "prompt": "Order ORD-1005 arrived broken and the customer asks for a replacement.",
+    "expected_status": "escalated",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": true,
+    "decision": "reject",
+    "required_events": [
+      "workflow.stage",
+      "tool.call",
+      "checkpoint.created",
+      "hitl.request",
+      "hitl.response",
+      "workflow.output"
+    ]
+  },
+  {
+    "id": "ORD-1006",
+    "prompt": "Order ORD-1006 was delayed but package condition is fine.",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": false,
+    "required_events": ["workflow.stage", "tool.call", "workflow.output"],
+    "forbidden_events": ["hitl.request"]
+  },
+  {
+    "id": "ORD-1007",
+    "prompt": "Order ORD-1007 is late. Start this request in session manual-session-1007.",
+    "session_id": "manual-session-1007",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": false,
+    "required_events": ["workflow.stage", "tool.call", "workflow.output"],
+    "forbidden_events": ["hitl.request"]
+  },
+  {
+    "id": "ORD-1008",
+    "prompt": "Order ORD-1008 arrived damaged. Please pause for supervisor review.",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": true,
+    "decision": "approve",
+    "required_events": [
+      "workflow.stage",
+      "tool.call",
+      "checkpoint.created",
+      "hitl.request",
+      "hitl.response",
+      "workflow.output"
+    ]
+  },
+  {
+    "id": "ORD-1009",
+    "prompt": "Order ORD-1009 is delayed by 5 days. I need compensation.",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1009",
+    "expect_hitl": true,
+    "decision": "approve",
+    "required_events": [
+      "workflow.stage",
+      "tool.call",
+      "checkpoint.created",
+      "hitl.request",
+      "hitl.response",
+      "workflow.output"
+    ]
+  },
+  {
+    "id": "ORD-1010",
+    "prompt": "Order ORD-1010 has a normal late-delivery question and needs no refund escalation.",
+    "expected_status": "completed",
+    "expected_order_id": "ord-1001",
+    "expect_hitl": false,
+    "required_events": ["workflow.stage", "tool.call", "workflow.output"],
+    "forbidden_events": ["hitl.request"]
+  }
+]

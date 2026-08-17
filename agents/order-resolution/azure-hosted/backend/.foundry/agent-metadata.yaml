@@ -1,0 +1,10 @@
+version: 1
+runtime: langgraph
+protocol: native-http-sse
+checkpointing: async-postgres
+interruptReconciliation: graph-authoritative
+maxUnresolvedInterruptsPerThread: 1
+defaultEnvironment: dev
+environments:
+  dev:
+    evaluationSuites: []

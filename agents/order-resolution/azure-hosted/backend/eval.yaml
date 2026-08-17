@@ -1,0 +1,35 @@
+name: order-resolution-quality
+metadata:
+  runtime: langgraph
+  graph: order_resolution
+  persistence: async_postgres
+  strict_msgpack: true
+  schema_version: 2
+  interrupt_reconciliation: graph_authoritative
+  max_unresolved_interrupts_per_thread: 1
+dataset:
+  local_uri: .foundry/datasets/order-resolution-azure-cases.jsonl
+  format: native-http-sse
+  metadata_version: 2
+agent:
+  name: order-resolution-azure-hosted
+evaluators:
+  - task_completion
+  - task_adherence
+  - intent_resolution
+  - relevance
+foundry:
+  name: order-resolution-foundry-report
+  report_only: true
+  max_queries: 10
+  poll_interval: 5
+  timeout: 1800
+  evaluators:
+    - task_completion
+    - coherence
+  trace_evaluation:
+    evidence_file: .foundry/results/domain-e2e.json
+    max_traces: 10
+    minimum_trace_age_seconds: 90
+options:
+  pass_threshold: 0.8

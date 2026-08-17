@@ -1,0 +1,28 @@
+name: azure-hosted-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agents/order-resolution/azure-hosted
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 scripts/skills/validate-skills.py
+      - run: bash deployment/tests/test-profile.sh
+      - run: python3 -m pip install pytest
+      - run: pytest -q scripts/azure/tests
+
+# Credential-free CI only. Azure provisioning and deployment are intentionally
+# absent; authenticated release execution is local and operator-controlled.

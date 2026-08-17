@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.mypy_cache/
+.tox/
+.nox/
+
+# Node
+node_modules/
+dist/
+
+# Env and local data
+.env
+backend/.env
+backend/.foundry/checkpoints/*.json
+backend/.foundry/memory/*.json
+backend/.foundry/results/*.json
+backend/.tmp/
+
+# Logs
+*.log
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Local runtime config
+local.ini
+*.local.ini
+.vscode/
+frontend/public/env-config.js
+
+# Generated Bicep build artifacts (keep parameters.dev.json tracked)
+infra/azure-apphosted/iac/main.json
+infra/azure-apphosted/iac/modules/*.json
+backend/tmp-foundry-sample/
+
+# Generated releases stay local; retain only the tracked contract.
+!.artifacts/
+!.artifacts/releases/
+.artifacts/releases/*
+!.artifacts/releases/_contract/
+!.artifacts/releases/_contract/release-v1.schema.json
