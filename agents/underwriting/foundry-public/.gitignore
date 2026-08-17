@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.mypy_cache/
+.tox/
+.nox/
+*.egg-info/
+
+# Node
+node_modules/
+dist/
+
+# Env and local data
+.env
+backend/.env
+backend/data/checkpoints/*.json
+backend/data/memory/*.json
+backend/.foundry/results/*.json
+
+# Logs
+*.log
+
+# Temporary learning / experiment files
+backend/.tmp/
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Local runtime config
+local.ini
+*.local.ini
+infra/foundry-hosted/agent/
+infra/foundry-hosted/iac/main.json
+infra/foundry-hosted/iac/modules/*.json
+
+# Local deployment progress reports and operational evidence.
+deployment-report/
+
+# Generated releases stay local; retain only tracked contracts/history.
+!.artifacts/
+!.artifacts/releases/
+.artifacts/releases/*
+!.artifacts/releases/_contract/
+!.artifacts/releases/_contract/**
+!.artifacts/releases/_history/
+!.artifacts/releases/_history/**

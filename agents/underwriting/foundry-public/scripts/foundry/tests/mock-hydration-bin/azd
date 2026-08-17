@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "$1" == "auth" && "$2" == "login" ]]; then
+  exit 0
+fi
+[[ "$1" == "env" ]] || exit 1
+case "$2" in
+  get-value)
+    case "$3" in
+      INFRASTRUCTURE_MODE) printf '%s\n' reuse ;;
+      AZURE_SUBSCRIPTION_ID) printf '%s\n' 7df95e88-701c-4693-af77-3159f83b558d ;;
+      AZURE_RESOURCE_GROUP) printf '%s\n' rg-langgraph-uw-foundry-public ;;
+      AZURE_LOCATION) printf '%s\n' eastus2 ;;
+      NAME_PREFIX) printf '%s\n' underwriting ;;
+      FOUNDRY_ACCOUNT_NAME) printf '%s\n' underwriting543d527cai ;;
+      FOUNDRY_PROJECT_NAME) printf '%s\n' underwriting ;;
+      HOSTED_AGENT_NAME) printf '%s\n' underwriting-hosted ;;
+      FOUNDRY_RUNTIME_CONNECTION_NAME) printf '%s\n' underwritingruntimesecrets ;;
+      FOUNDRY_MODEL_DEPLOYMENT_NAME) printf '%s\n' underwriting-gpt-4-1-mini ;;
+      FOUNDRY_MODEL_FORMAT) printf '%s\n' OpenAI ;;
+      FOUNDRY_MODEL_NAME) printf '%s\n' gpt-4.1-mini ;;
+      FOUNDRY_MODEL_VERSION) printf '%s\n' 2025-04-14 ;;
+      FOUNDRY_MODEL_SKU_NAME) printf '%s\n' DataZoneStandard ;;
+      FOUNDRY_MODEL_CAPACITY) printf '%s\n' 1500 ;;
+      FOUNDRY_EMBEDDINGS_DEPLOYMENT_NAME) printf '%s\n' underwriting-text-embedding-3-small ;;
+      FOUNDRY_EMBEDDINGS_MODEL_VERSION) printf '%s\n' 1 ;;
+      FOUNDRY_EMBEDDINGS_MODEL_CAPACITY) printf '%s\n' 120 ;;
+      FOUNDRY_EVAL_MODEL) printf '%s\n' underwriting-gpt-4-1-mini-evaluation ;;
+      FOUNDRY_EVALUATION_MODEL_CAPACITY) printf '%s\n' 250 ;;
+      FOUNDRY_RAI_POLICY_NAME) printf '%s\n' Microsoft.Default ;;
+      CONTAINER_REGISTRY_NAME) printf '%s\n' underwriting543d527cacr ;;
+      POSTGRES_SERVER_NAME) printf '%s\n' underwriting543d527cpg ;;
+      POSTGRES_DATABASE) printf '%s\n' underwriting ;;
+      POSTGRES_RUNTIME_USERNAME) printf '%s\n' underwriting_runtime ;;
+      POSTGRES_ADMIN_USERNAME) printf '%s\n' pgadmin ;;
+      POSTGRES_OPERATOR_IP) printf '%s\n' 203.0.113.10 ;;
+      CONTAINER_APPS_ENVIRONMENT_NAME) printf '%s\n' underwriting543d527c-cae ;;
+      BACKEND_CONTAINER_APP_NAME) printf '%s\n' underwriting543d527c-backend ;;
+      FRONTEND_CONTAINER_APP_NAME) printf '%s\n' underwriting543d527c-frontend ;;
+      PUBLIC_BACKEND_MANAGED_IDENTITY_NAME) printf '%s\n' underwriting543d527c-backend-mi ;;
+      PUBLIC_FRONTEND_MANAGED_IDENTITY_NAME) printf '%s\n' underwriting543d527c-frontend-mi ;;
+      APPLICATION_INSIGHTS_NAME) printf '%s\n' underwriting543d527c-ai ;;
+      LOG_ANALYTICS_WORKSPACE_NAME) printf '%s\n' underwriting543d527c-log ;;
+      BACKEND_IMAGE_REPOSITORY) printf '%s\n' underwriting-public-backend ;;
+      FRONTEND_IMAGE_REPOSITORY) printf '%s\n' underwriting-public-frontend ;;
+      EVALUATION_STORAGE_ACCOUNT_NAME) printf '%s\n' underwriting543d527ceval ;;
+      BOOTSTRAP_RUNTIME_DATABASE_URL) printf '%s\n' reuse-placeholder ;;
+      POSTGRES_ADMIN_PASSWORD) printf '%s\n' reuse-placeholder ;;
+    esac
+    ;;
+  set)
+    printf '%s=%s\n' "$3" "$4" >>"$MOCK_AZD_LOG"
+    ;;
+  *)
+    exit 1
+    ;;
+esac

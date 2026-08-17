@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+[[ "$1" == "env" ]] || exit 1
+
+case "$2" in
+  get-value)
+    case "$3" in
+      AZURE_SUBSCRIPTION_ID) printf '%s\n' '00000000-0000-0000-0000-000000000000' ;;
+      AZURE_RESOURCE_GROUP) printf '%s\n' 'rg-langgraph-uw-foundry-public' ;;
+      AZURE_LOCATION) printf '%s\n' 'eastus2' ;;
+      NAME_PREFIX) printf '%s\n' 'underwriting' ;;
+      POSTGRES_OPERATOR_IP) printf '%s\n' '203.0.113.10' ;;
+      FOUNDRY_ACCOUNT_NAME) printf '%s\n' 'underwritingeb7a06feai' ;;
+    esac
+    ;;
+  set)
+    printf 'set %s=%s\n' "$3" "$4" >&2
+    ;;
+  *)
+    exit 1
+    ;;
+esac

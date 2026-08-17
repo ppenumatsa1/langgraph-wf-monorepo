@@ -1,0 +1,330 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/underwriting/release-v1.schema.json",
+  "title": "Underwriting release record v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "contract",
+    "project",
+    "lane",
+    "release_id",
+    "source",
+    "target",
+    "execution",
+    "status",
+    "started_at",
+    "updated_at",
+    "gates",
+    "artifacts",
+    "extensions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "contract": {
+      "const": "underwriting-release/v1"
+    },
+    "project": {
+      "const": "underwriting"
+    },
+    "lane": {
+      "const": "underwriting-foundry-public"
+    },
+    "release_id": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 128
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "repository",
+        "commit"
+      ],
+      "properties": {
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": [
+        "profile",
+        "profile_sha256",
+        "environment",
+        "subscription_id",
+        "resource_group",
+        "location"
+      ],
+      "properties": {
+        "profile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "profile_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "environment": {
+          "type": "string",
+          "minLength": 1
+        },
+        "subscription_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resource_group": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": [
+        "executor",
+        "workflow_run_id"
+      ],
+      "properties": {
+        "executor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "workflow_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "status": {
+      "enum": [
+        "running",
+        "succeeded",
+        "failed"
+      ]
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "failed_stage": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "error": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "status",
+          "artifact"
+        ],
+        "properties": {
+          "status": {
+            "enum": [
+              "pending",
+              "succeeded",
+              "failed"
+            ]
+          },
+          "artifact": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "path",
+          "sha256",
+          "size_bytes"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^(evidence|logs)/.+"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "durable_artifact": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "extensions": {
+      "type": "object",
+      "required": [
+        "required_gates",
+        "release_timing"
+      ],
+      "properties": {
+        "required_gates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "release_timing": {
+          "type": "object",
+          "required": [
+            "version",
+            "app_only_started_at",
+            "telemetry_succeeded_at",
+            "app_only_duration_ms",
+            "app_only",
+            "stages"
+          ],
+          "properties": {
+            "version": {
+              "const": 1
+            },
+            "app_only_started_at": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "telemetry_succeeded_at": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "app_only_duration_ms": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "app_only": {
+              "type": "object",
+              "required": [
+                "status",
+                "started_at",
+                "ended_at",
+                "duration_ms"
+              ],
+              "properties": {
+                "status": {
+                  "enum": [
+                    "pending",
+                    "running",
+                    "succeeded",
+                    "failed"
+                  ]
+                },
+                "started_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "ended_at": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "duration_ms": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                }
+              }
+            },
+            "stages": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "required": [
+                  "status",
+                  "started_at",
+                  "ended_at",
+                  "duration_ms"
+                ],
+                "properties": {
+                  "status": {
+                    "enum": [
+                      "running",
+                      "succeeded",
+                      "failed"
+                    ]
+                  },
+                  "started_at": {
+                    "type": "string"
+                  },
+                  "ended_at": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "duration_ms": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

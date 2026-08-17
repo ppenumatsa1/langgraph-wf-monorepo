@@ -33,6 +33,7 @@ tar --exclude='.env' --exclude='.venv' --exclude='tests' --exclude='.pytest_cach
   --exclude='.foundry/results' --exclude='tmp-foundry-sample' \
   -C "${SOURCE_DIR}" -cf - . | tar -C "${TARGET_DIR}" -xf -
 cp "${SOURCE_DIR}/Dockerfile.hosted" "${TARGET_DIR}/Dockerfile"
+cp "${SOURCE_DIR}/.dockerignore" "${TARGET_DIR}/.dockerignore"
 mkdir -p "${TARGET_DIR}/.deployment"
 cp "${HOSTED_LAUNCHER}" "${TARGET_DIR}/.deployment/launch_hosted_agent.py"
 python3 - "${TARGET_DIR}/Dockerfile" <<'PY'

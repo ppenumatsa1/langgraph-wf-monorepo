@@ -1,0 +1,21 @@
+name: underwriting-public-smoke
+agent:
+  name: underwriting-hosted
+dataset:
+  local_uri: .foundry/datasets/underwriting-smoke.jsonl
+evaluators:
+  - builtin.task_adherence
+  - builtin.intent_resolution
+  - builtin.relevance
+foundry:
+  name: underwriting-foundry-trace
+  evaluators:
+    - task_completion
+    - coherence
+  trace_evaluation:
+    evidence_file: .foundry/results/hosted-smoke-evidence.json
+    minimum_trace_age_seconds: 90
+  poll_interval: 5
+  timeout: 900
+options:
+  pass_threshold: 0.8

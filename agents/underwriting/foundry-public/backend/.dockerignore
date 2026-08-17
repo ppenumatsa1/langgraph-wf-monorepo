@@ -1,0 +1,10 @@
+.env
+.foundry/results
+.pytest_cache
+.ruff_cache
+.tmp
+.venv
+__pycache__
+**/__pycache__
+**/*.pyc
+tests

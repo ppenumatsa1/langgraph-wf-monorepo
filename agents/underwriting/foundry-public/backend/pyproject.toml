@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "underwriting-langgraph-foundry-backend"
+version = "0.2.0"
+description = "Insurance underwriting workflow backend hosted on Microsoft Foundry"
+requires-python = ">=3.11"
+dependencies = [
+  "azure-identity>=1.25.0,<2.0.0",
+  "azure-monitor-opentelemetry>=1.8.0,<2.0.0",
+  "azure-ai-projects>=2.4.0,<3.0.0",
+  "azure-ai-agentserver-core==2.0.0b7",
+  "azure-ai-agentserver-responses==1.0.0b8",
+  "fastapi>=0.121.0,<0.140.0",
+  "langgraph==1.2.10",
+  "langgraph-checkpoint-postgres==3.1.2",
+  "openai>=2.53.0,<3.0.0",
+  "opentelemetry-api>=1.42.0",
+  "opentelemetry-sdk>=1.42.0",
+  "opentelemetry-exporter-otlp>=1.42.0",
+  "opentelemetry-instrumentation-fastapi>=0.63b0",
+  "opentelemetry-instrumentation-openai-v2>=2.3.0b0,<3.0.0",
+  "psycopg[binary]==3.2.9",
+  "psycopg-pool>=3.2.6,<4.0.0",
+  "python-dotenv==1.1.1",
+  "PyYAML>=6.0.2,<7.0.0",
+  "SQLAlchemy==2.0.41",
+  "uvicorn[standard]>=0.30.0,<1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28.0,<1.0.0",
+  "jsonschema>=4.25.1,<5.0.0",
+  "pytest==8.4.1",
+  "ruff>=0.12.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*", "foundry*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]

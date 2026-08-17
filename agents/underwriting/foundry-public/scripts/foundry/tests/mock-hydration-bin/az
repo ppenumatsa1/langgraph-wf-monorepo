@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+args="$*"
+case "$args" in
+  "account set --subscription "*) exit 0 ;;
+  "group show --name rg-langgraph-uw-foundry-public --query location -o tsv")
+    printf '%s\n' eastus2
+    ;;
+  *"postgres flexible-server show"*"--query location"*)
+    printf '%s\n' eastus2
+    ;;
+  *"postgres flexible-server show"*"--query fullyQualifiedDomainName"*)
+    printf '%s\n' underwriting543d527cpg.postgres.database.azure.com
+    ;;
+  *"acr show"*"--query loginServer"*)
+    printf '%s\n' underwriting543d527cacr.azurecr.io
+    ;;
+  *"cognitiveservices account show"*"--query properties.endpoint"*)
+    printf '%s\n' https://underwriting543d527cai.cognitiveservices.azure.com/
+    ;;
+  *"app-insights component show"*"--query connectionString"*)
+    printf '%s\n' InstrumentationKey=00000000-0000-0000-0000-000000000000
+    ;;
+  *"app-insights component show"*"--query id"*)
+    printf '%s\n' /subscriptions/sub/resourceGroups/rg/providers/Microsoft.Insights/components/appi
+    ;;
+  *"log-analytics workspace show"*"--query id"*)
+    printf '%s\n' /subscriptions/sub/resourceGroups/rg/providers/Microsoft.OperationalInsights/workspaces/log
+    ;;
+  *"containerapp env show"*"--query id"*)
+    printf '%s\n' /subscriptions/sub/resourceGroups/rg/providers/Microsoft.App/managedEnvironments/cae
+    ;;
+  *"containerapp show"*"--name underwriting543d527c-backend"*"--query id"*)
+    printf '%s\n' /subscriptions/sub/resourceGroups/rg/providers/Microsoft.App/containerApps/backend
+    ;;
+  *"containerapp show"*"--name underwriting543d527c-backend"*"--query properties.configuration.ingress.fqdn"*)
+    printf '%s\n' backend.internal.eastus2.azurecontainerapps.io
+    ;;
+  *"containerapp show"*"--name underwriting543d527c-frontend"*"--query id"*)
+    printf '%s\n' /subscriptions/sub/resourceGroups/rg/providers/Microsoft.App/containerApps/frontend
+    ;;
+  *"containerapp show"*"--name underwriting543d527c-frontend"*"--query properties.configuration.ingress.fqdn"*)
+    printf '%s\n' frontend.public.eastus2.azurecontainerapps.io
+    ;;
+  *)
+    printf 'unexpected az command: %s\n' "$args" >&2
+    exit 1
+    ;;
+esac

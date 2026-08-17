@@ -1,0 +1,22 @@
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/backend \
+    PIP_INDEX_URL=https://packagefeedproxy.microsoft.io/pypi/simple
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY pyproject.toml ./
+COPY . .
+
+RUN pip install --no-cache-dir . \
+    && python -c "import foundry.main, langgraph, psycopg_pool"
+
+EXPOSE 8088
+
+CMD ["python", "-m", "foundry.main"]
