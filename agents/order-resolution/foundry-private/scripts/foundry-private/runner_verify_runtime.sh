@@ -33,9 +33,9 @@ for item in "$backend_json" "$frontend_json"; do
   [[ "$(jq -r '.properties.configuration.activeRevisionsMode // empty' <<<"$item")" == "Single" ]] ||
     private_die "private Container Apps must use single-revision deployment"
 done
-[[ "$(jq -r '.properties.configuration.ingress.external // empty' <<<"$backend_json")" == "false" ]] ||
+jq -e '.properties.configuration.ingress.external == false' <<<"$backend_json" >/dev/null ||
   private_die "private backend ingress must remain internal"
-[[ "$(jq -r '.properties.configuration.ingress.external // empty' <<<"$frontend_json")" == "true" ]] ||
+jq -e '.properties.configuration.ingress.external == true' <<<"$frontend_json" >/dev/null ||
   private_die "private frontend must be the lane's only external ingress"
 [[ "$(jq -r '.properties.template.containers[0].image // empty' <<<"$backend_json")" == "$backend_image" ]] ||
   private_die "backend does not use the expected immutable private image"

@@ -361,6 +361,10 @@ bootstrap, and excludes generated pytest scratch content.
   runner stage reserves stdout for one JSON evidence object, that text made
   the result unparsable. Registry login stdout is now explicitly discarded;
   command failures still propagate under strict shell mode.
+- Backend deployment reached its isolation guard and exposed another
+  `false // empty` jq check. The deploy and runtime-verification stages now
+  require explicit JSON booleans for internal backend and external frontend
+  ingress rather than applying a fallback operator to boolean values.
 
 ## Open implementation follow-through
 

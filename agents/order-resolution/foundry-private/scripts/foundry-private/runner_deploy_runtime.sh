@@ -40,9 +40,9 @@ done
 
 backend_json="$(az containerapp show --subscription "$subscription_id" --resource-group "$resource_group" --name "$backend_name" --output json)"
 frontend_json="$(az containerapp show --subscription "$subscription_id" --resource-group "$resource_group" --name "$frontend_name" --output json)"
-[[ "$(jq -r '.properties.configuration.ingress.external // empty' <<<"$backend_json")" == "false" ]] ||
+jq -e '.properties.configuration.ingress.external == false' <<<"$backend_json" >/dev/null ||
   private_die "private backend ingress must remain internal"
-[[ "$(jq -r '.properties.configuration.ingress.external // empty' <<<"$frontend_json")" == "true" ]] ||
+jq -e '.properties.configuration.ingress.external == true' <<<"$frontend_json" >/dev/null ||
   private_die "private frontend must be the lane's only external ingress"
 
 frontend_fqdn="$(jq -r '.properties.configuration.ingress.fqdn // empty' <<<"$frontend_json")"

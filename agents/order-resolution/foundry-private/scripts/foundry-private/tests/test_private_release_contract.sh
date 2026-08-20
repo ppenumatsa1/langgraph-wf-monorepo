@@ -93,6 +93,10 @@ grep -Fq 'type) == "number"' "$scripts_dir/model_preflight.sh"
 grep -Fq '(.adminUserEnabled == false)' "$scripts_dir/runner_acr_package.sh"
 grep -Fq 'az acr login' "$scripts_dir/runner_acr_package.sh"
 grep -Fq -- '--output none >/dev/null' "$scripts_dir/runner_acr_package.sh"
+grep -Fq '.properties.configuration.ingress.external == false' \
+  "$scripts_dir/runner_deploy_runtime.sh"
+grep -Fq '.properties.configuration.ingress.external == false' \
+  "$scripts_dir/runner_verify_runtime.sh"
 if grep -R '\.privateLinkServiceConnectionState\.status' \
   "$scripts_dir/runner_acr_package.sh" "$scripts_dir/verify.sh" |
   grep -v '\.properties\.privateLinkServiceConnectionState\.status' >/dev/null; then
