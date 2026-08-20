@@ -39,7 +39,7 @@ power_state="$(
 [[ "$power_state" == "1" ]] || private_die "private runner VM must be running"
 
 printf -v remote_command \
-  'set -euo pipefail; cd %q; export AZURE_DEV_USER_AGENT=%q FOUNDRY_PRIVATE_RUNNER_EXECUTION=1 FOUNDRY_PRIVATE_RELEASE_ID=%q FOUNDRY_PRIVATE_AZD_ENV_NAME=%q FOUNDRY_PRIVATE_EXPECTED_COMMIT=%q; exec bash scripts/foundry-private/runner_stage.sh %q' \
+  'set -eu; cd %q; export AZURE_DEV_USER_AGENT=%q FOUNDRY_PRIVATE_RUNNER_EXECUTION=1 FOUNDRY_PRIVATE_RELEASE_ID=%q FOUNDRY_PRIVATE_AZD_ENV_NAME=%q FOUNDRY_PRIVATE_EXPECTED_COMMIT=%q; exec bash scripts/foundry-private/runner_stage.sh %q' \
   "$runner_workdir" microsoft_foundry_skill "$release_id" "$environment" "$expected_commit" "$stage"
 
 az vm run-command invoke \

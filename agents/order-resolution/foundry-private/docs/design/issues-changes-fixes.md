@@ -330,6 +330,10 @@ bootstrap, and excludes generated pytest scratch content.
   same explicit `HOME=/root` contract now lives in the shared stage dispatcher
   used by PostgreSQL, packaging, deployment, smoke, E2E, evaluation, and
   telemetry.
+- `az vm run-command invoke` evaluates its launcher with `/bin/sh`; the
+  Bash-only outer `set -o pipefail` failed before `runner_stage.sh` could emit
+  evidence. The outer launcher now uses POSIX `set -eu`, then `exec`s the Bash
+  stage dispatcher where `pipefail` remains enforced.
 
 ## Open implementation follow-through
 
