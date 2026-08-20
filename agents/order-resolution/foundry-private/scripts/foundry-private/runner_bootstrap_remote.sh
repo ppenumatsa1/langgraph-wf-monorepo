@@ -73,8 +73,11 @@ EOF
 chmod 700 "$askpass"
 
 rm -rf -- "$staging_root"
-GIT_ASKPASS="$askpass" GIT_TERMINAL_PROMPT=0 \
-  git clone --filter=blob:none --no-checkout "$REPOSITORY_URL" "$staging_root" >/dev/null
+export GITHUB_TOKEN
+export GIT_ASKPASS="$askpass"
+export GIT_ASKPASS_REQUIRE=force
+export GIT_TERMINAL_PROMPT=0
+git clone --filter=blob:none --no-checkout "$REPOSITORY_URL" "$staging_root" >/dev/null
 git -C "$staging_root" fetch --depth 1 origin "$EXPECTED_COMMIT" >/dev/null
 git -C "$staging_root" checkout --detach "$EXPECTED_COMMIT" >/dev/null
 [[ "$(git -C "$staging_root" rev-parse HEAD)" == "$EXPECTED_COMMIT" ]] || {
@@ -95,7 +98,7 @@ fi
 rm -rf -- "$source_root"
 mv "$staging_root" "$source_root"
 rm -f -- "$askpass"
-unset GITHUB_TOKEN
+unset GITHUB_TOKEN GIT_ASKPASS GIT_ASKPASS_REQUIRE GIT_TERMINAL_PROMPT
 
 python3 -m venv "$WORKDIR/backend/.venv"
 "$WORKDIR/backend/.venv/bin/pip" install --disable-pip-version-check --no-cache-dir \

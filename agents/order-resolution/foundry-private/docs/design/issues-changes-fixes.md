@@ -318,6 +318,11 @@ bootstrap, and excludes generated pytest scratch content.
   file path, while `GITHUB_TOKEN` and the AZD environment remain in the ARM
   `protectedParameters` collection. A live probe confirmed the protected value
   reaches the VM without appearing in command output.
+- The first protected bootstrap then exposed a Git helper-scope defect:
+  `GIT_ASKPASS` covered only `clone`, and the helper child was not guaranteed to
+  inherit `GITHUB_TOKEN`. The runner now exports and forces the executable
+  helper for clone, fetch, and detached checkout, then unsets the token and all
+  Git prompt variables immediately after installing the exact source tree.
 
 ## Open implementation follow-through
 
