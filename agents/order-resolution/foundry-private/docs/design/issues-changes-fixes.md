@@ -334,6 +334,10 @@ bootstrap, and excludes generated pytest scratch content.
   Bash-only outer `set -o pipefail` failed before `runner_stage.sh` could emit
   evidence. The outer launcher now uses POSIX `set -eu`, then `exec`s the Bash
   stage dispatcher where `pipefail` remains enforced.
+- PostgreSQL schema bootstrap then passed, while runtime credential bootstrap
+  reached ARM and exposed a 65-character deployment name. The connection
+  deployment now derives its release suffix from the exact remaining
+  `64 - prefix length` budget instead of a fixed slice.
 
 ## Open implementation follow-through
 

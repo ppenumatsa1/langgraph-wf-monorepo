@@ -98,7 +98,7 @@ PY
 private_converge_runtime_connection() {
   local runtime_url="$1"
   local account_name project_name location connection_name
-  local scratch_dir parameter_file deployment_name connection_url metadata release_id release_slug
+  local scratch_dir parameter_file deployment_name deployment_prefix connection_url metadata release_id release_slug
 
   account_name="$(private_required_env_value FOUNDRY_ACCOUNT_NAME)"
   project_name="$(private_required_env_value FOUNDRY_PROJECT_NAME)"
@@ -147,7 +147,8 @@ PY
 
   release_id="$(private_release_id)"
   release_slug="${release_id//[^A-Za-z0-9-]/-}"
-  deployment_name="order-resolution-private-runtime-${release_slug:0:32}"
+  deployment_prefix="order-resolution-private-runtime-"
+  deployment_name="${deployment_prefix}${release_slug:0:$((64 - ${#deployment_prefix}))}"
   if ! az deployment group create \
     --subscription "$subscription_id" \
     --resource-group "$resource_group" \
