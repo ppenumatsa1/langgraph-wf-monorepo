@@ -654,6 +654,11 @@ resource containerRegistryBootstrap 'Microsoft.ContainerRegistry/registries@2025
       defaultAction: 'Deny'
       ipRules: []
     }
+    policies: {
+      azureADAuthenticationAsArmPolicy: {
+        status: 'enabled'
+      }
+    }
     publicNetworkAccess: 'Disabled'
   }
   tags: tags

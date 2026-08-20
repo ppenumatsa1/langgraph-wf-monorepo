@@ -49,6 +49,8 @@ grep -Fq "targetPort: 8000" "$template" ||
   private_die "private backend ingress must target port 8000"
 grep -Fq "targetPort: 5173" "$template" ||
   private_die "private frontend ingress must target port 5173"
+grep -Fq "azureADAuthenticationAsArmPolicy" "$template" ||
+  private_die "private ACR requires ARM-audience authentication for Foundry"
 grep -Fq "param standardAgentSearchLocation string = 'westus3'" "$template" ||
   private_die "private Search must avoid the documented East US 2 capacity constraint"
 grep -Fq "location: standardAgentSearchLocation" "$template" ||

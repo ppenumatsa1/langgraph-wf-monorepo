@@ -18,6 +18,7 @@ registry_endpoint="$(private_required_env_value AZURE_CONTAINER_REGISTRY_ENDPOIN
 backend_repository="$(private_required_env_value BACKEND_IMAGE_REPOSITORY)"
 frontend_repository="$(private_required_env_value FRONTEND_IMAGE_REPOSITORY)"
 registry_json="$(az acr show --subscription "$subscription_id" --resource-group "$resource_group" --name "$registry_name" --output json)"
+arm_auth_policy="$(az acr config authentication-as-arm show --subscription "$subscription_id" --registry "$registry_name" --output json)"
 
 [[ "$(jq -r '.sku.name // empty' <<<"$registry_json")" == "Premium" ]] ||
   private_die "private ACR must use the Premium SKU"
@@ -26,6 +27,8 @@ registry_json="$(az acr show --subscription "$subscription_id" --resource-group 
 jq -e '(.adminUserEnabled == false) or (.properties.adminUserEnabled == false)' \
   <<<"$registry_json" >/dev/null ||
   private_die "private ACR admin user must be disabled"
+jq -e '.status == "enabled"' <<<"$arm_auth_policy" >/dev/null ||
+  private_die "private ACR must enable ARM-audience authentication for Foundry hosted agents"
 connections="$(az network private-endpoint-connection list --id "$(jq -r '.id' <<<"$registry_json")" --output json)"
 jq -e 'any(.[]; (.properties.privateLinkServiceConnectionState.status // "") == "Approved")' \
   <<<"$connections" >/dev/null ||

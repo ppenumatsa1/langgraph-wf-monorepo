@@ -365,6 +365,13 @@ bootstrap, and excludes generated pytest scratch content.
   `false // empty` jq check. The deploy and runtime-verification stages now
   require explicit JSON booleans for internal backend and external frontend
   ingress rather than applying a fallback operator to boolean values.
+- The first Foundry hosted version reached the service but failed provisioning.
+  Its project identity already held both registry-reader roles; live ACR
+  inspection showed the required
+  `azureADAuthenticationAsArmPolicy` was unset. The private registry now
+  enables that policy in Bicep, and packaging fails closed unless the live
+  policy is `enabled`. Admin authentication and public network access remain
+  disabled.
 
 ## Open implementation follow-through
 

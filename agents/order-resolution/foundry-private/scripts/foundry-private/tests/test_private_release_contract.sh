@@ -91,6 +91,7 @@ grep -Fq 'export HOME=/root' "$scripts_dir/runner_stage.sh"
 grep -Fq '64 - ${#deployment_prefix}' "$scripts_dir/runner_postgres.sh"
 grep -Fq 'type) == "number"' "$scripts_dir/model_preflight.sh"
 grep -Fq '(.adminUserEnabled == false)' "$scripts_dir/runner_acr_package.sh"
+grep -Fq 'acr config authentication-as-arm show' "$scripts_dir/runner_acr_package.sh"
 grep -Fq 'az acr login' "$scripts_dir/runner_acr_package.sh"
 grep -Fq -- '--output none >/dev/null' "$scripts_dir/runner_acr_package.sh"
 grep -Fq '.properties.configuration.ingress.external == false' \
