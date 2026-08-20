@@ -70,7 +70,7 @@ copy_sanitized_tree "$PRIVATE_ROOT_DIR/frontend" "$frontend_context"
 PRIVATE_HOSTED_PACKAGE_DIR="$hosted_package_dir" "$SCRIPT_DIR/sync_hosted_source.sh"
 commit="$(git -C "$PRIVATE_ROOT_DIR" rev-parse HEAD)"
 image_tag="${commit:0:12}-$(date -u +%Y%m%d%H%M%S)"
-az acr login --subscription "$subscription_id" --name "$registry_name" --output none
+az acr login --subscription "$subscription_id" --name "$registry_name" --output none >/dev/null
 logout_registry() {
   docker logout "$registry_endpoint" >/dev/null 2>&1 || true
 }

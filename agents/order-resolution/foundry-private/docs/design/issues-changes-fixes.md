@@ -356,6 +356,11 @@ bootstrap, and excludes generated pytest scratch content.
   read the live ARM shape under
   `.properties.privateLinkServiceConnectionState.status`, and the script
   contract rejects reintroducing the flattened path.
+- ACR packaging built and pushed all three images, but `az acr login --output
+  none` still forwarded Docker's `Login Succeeded` text to stdout. Because the
+  runner stage reserves stdout for one JSON evidence object, that text made
+  the result unparsable. Registry login stdout is now explicitly discarded;
+  command failures still propagate under strict shell mode.
 
 ## Open implementation follow-through
 
