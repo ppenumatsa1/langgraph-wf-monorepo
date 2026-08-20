@@ -95,6 +95,7 @@ grep -Fq 'acr config authentication-as-arm show' "$scripts_dir/runner_acr_packag
 grep -Fq 'range(120)' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq 'matching_active_version' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq 'ensure_acr_pull(principal_id)' "$scripts_dir/deploy_hosted_agent.py"
+grep -Fq '"AuthorizationFailed"' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq 'FOUNDRY_ACR_RESOURCE_ID' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq 'az acr login' "$scripts_dir/runner_acr_package.sh"
 grep -Fq -- '--output none >/dev/null' "$scripts_dir/runner_acr_package.sh"

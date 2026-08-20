@@ -395,7 +395,10 @@ bootstrap, and excludes generated pytest scratch content.
   immediately after version creation, verifies propagation, and only then
   polls activation. Its custom role permits role-assignment read/write only at
   that registry assignment scope, and its version 2.0 RBAC condition rejects
-  writes for every role definition except `AcrPull`.
+  writes for every role definition except `AcrPull`. The assignment can take
+  time to enter the runner's authorization path, so hosted deployment retries
+  only the explicit principal- and authorization-propagation error codes
+  within the existing bounded wait.
 
 ## Open implementation follow-through
 

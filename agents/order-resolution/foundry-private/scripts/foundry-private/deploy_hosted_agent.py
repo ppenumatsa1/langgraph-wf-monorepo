@@ -71,7 +71,8 @@ def ensure_acr_pull(principal_id: str) -> None:
         result = subprocess.run(create, capture_output=True, check=False, text=True)
         if result.returncode == 0 or "RoleAssignmentExists" in result.stderr:
             break
-        if "PrincipalNotFound" not in result.stderr:
+        retryable = ("PrincipalNotFound", "AuthorizationFailed", "DeniedWithNoValidRBAC")
+        if not any(code in result.stderr for code in retryable):
             raise RuntimeError("Unable to grant the hosted identity private ACR pull access.")
         time.sleep(10)
     else:
