@@ -290,6 +290,21 @@ bootstrap, and excludes generated pytest scratch content.
   capability host bind to an `existing` Foundry account scope in phase two, so
   the post-readiness deployment cannot issue another account PUT.
 
+### Sixth provisioning attempt: endpoint approval propagation
+
+- Both IaC phases completed successfully, including the Foundry private
+  endpoint, project, project connections, project capability host, backend,
+  and connected global VNet peerings.
+- Reconciliation read the raw private-endpoint connection response at
+  `.privateLinkServiceConnectionState` instead of the actual
+  `.properties.privateLinkServiceConnectionState` path, incorrectly treating
+  an approved connection as missing.
+- Reconciliation now polls each endpoint connection for up to 10 minutes,
+  parses the actual Azure response shape, succeeds only on `Approved`, and
+  fails immediately on `Rejected` or `Disconnected`. Authentication,
+  authorization, and CLI failures still propagate rather than being treated
+  as pending.
+
 ## Open implementation follow-through
 
 1. Run noninteractive preview and private readiness checks from the private

@@ -22,10 +22,22 @@ assert_private_endpoint() {
   local resource_id="$1"
   local label="$2"
   local connections
-  connections="$(az network private-endpoint-connection list --id "$resource_id" --output json)"
-  jq -e 'any(.[]; (.privateLinkServiceConnectionState.status // "") == "Approved")' \
-    <<<"$connections" >/dev/null ||
-    private_die "$label must have an approved private endpoint connection"
+  local deadline=$((SECONDS + 600))
+
+  while ((SECONDS < deadline)); do
+    connections="$(az network private-endpoint-connection list --id "$resource_id" --output json)"
+    if jq -e 'any(.[]; (.properties.privateLinkServiceConnectionState.status // "") == "Approved")' \
+      <<<"$connections" >/dev/null; then
+      return
+    fi
+    if jq -e 'any(.[]; (.properties.privateLinkServiceConnectionState.status // "") == "Rejected" or (.properties.privateLinkServiceConnectionState.status // "") == "Disconnected")' \
+      <<<"$connections" >/dev/null; then
+      private_die "$label private endpoint connection was rejected or disconnected"
+    fi
+    sleep 10
+  done
+
+  private_die "$label private endpoint approval timed out after 600 seconds"
 }
 
 assert_public_access_disabled() {
