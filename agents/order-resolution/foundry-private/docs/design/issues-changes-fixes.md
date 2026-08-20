@@ -323,6 +323,9 @@ bootstrap, and excludes generated pytest scratch content.
   inherit `GITHUB_TOKEN`. The runner now exports and forces the executable
   helper for clone, fetch, and detached checkout, then unsets the token and all
   Git prompt variables immediately after installing the exact source tree.
+- Managed Run Command does not define `HOME`; AZD refused to infer a config
+  path after dependencies installed. The root-run bootstrap now sets
+  `HOME=/root` explicitly before Azure CLI or AZD initialization.
 
 ## Open implementation follow-through
 

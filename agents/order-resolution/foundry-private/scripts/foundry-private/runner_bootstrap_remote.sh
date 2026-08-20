@@ -2,6 +2,8 @@
 set -euo pipefail
 set +x
 
+export HOME=/root
+
 private_azd() {
   AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd "$@"
 }
