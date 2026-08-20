@@ -1232,6 +1232,28 @@ resource projectSearchConnectionBootstrap 'Microsoft.CognitiveServices/accounts/
   }
 }
 
+resource projectContainerRegistryConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
+  parent: foundryProjectBootstrap
+  name: '${containerRegistryName}-conn'
+  properties: {
+    category: 'ContainerRegistry'
+    target: '${containerRegistryName}.azurecr.io'
+    authType: 'ManagedIdentity'
+    credentials: {
+      clientId: foundryProjectBootstrap!.identity.principalId
+      resourceId: containerRegistryBootstrap!.id
+    }
+    isSharedToAll: true
+    metadata: {
+      ResourceId: containerRegistryBootstrap!.id
+    }
+  }
+  dependsOn: [
+    projectAcrPullBootstrap
+    projectAcrRepositoryReaderBootstrap
+  ]
+}
+
 resource accountApplicationInsightsConnectionBootstrap 'Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
   parent: foundryAccountRoleScope
   name: 'ApplicationInsights'

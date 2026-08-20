@@ -372,6 +372,15 @@ bootstrap, and excludes generated pytest scratch content.
   enables that policy in Bicep, and packaging fails closed unless the live
   policy is `enabled`. Admin authentication and public network access remain
   disabled.
+- The policy alone was insufficient because the Foundry project had no
+  project-scoped `ContainerRegistry` connection. The official Azure Developer
+  CLI template requires that managed-identity connection in addition to ACR
+  RBAC. Creating it moved hosted activation beyond the prior failures, and all
+  four existing versions converged to `active`. The connection is now
+  Bicep-managed and ordered after both project registry-reader assignments.
+- The first successful private activation took slightly longer than the
+  original ten-minute poll. The hosted deployment remains bounded but now
+  allows up to twenty minutes before timing out.
 
 ## Open implementation follow-through
 

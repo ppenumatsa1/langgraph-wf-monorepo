@@ -92,6 +92,7 @@ grep -Fq '64 - ${#deployment_prefix}' "$scripts_dir/runner_postgres.sh"
 grep -Fq 'type) == "number"' "$scripts_dir/model_preflight.sh"
 grep -Fq '(.adminUserEnabled == false)' "$scripts_dir/runner_acr_package.sh"
 grep -Fq 'acr config authentication-as-arm show' "$scripts_dir/runner_acr_package.sh"
+grep -Fq 'range(120)' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq 'az acr login' "$scripts_dir/runner_acr_package.sh"
 grep -Fq -- '--output none >/dev/null' "$scripts_dir/runner_acr_package.sh"
 grep -Fq '.properties.configuration.ingress.external == false' \

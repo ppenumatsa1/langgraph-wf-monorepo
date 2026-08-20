@@ -70,7 +70,7 @@ def main() -> None:
             description="Order Resolution private LangGraph hosted workflow agent.",
             definition=build_definition(),
         )
-        for _ in range(60):
+        for _ in range(120):
             version = project.agents.get_version(
                 agent_name=agent_name, agent_version=created.version
             )

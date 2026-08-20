@@ -51,6 +51,10 @@ grep -Fq "targetPort: 5173" "$template" ||
   private_die "private frontend ingress must target port 5173"
 grep -Fq "azureADAuthenticationAsArmPolicy" "$template" ||
   private_die "private ACR requires ARM-audience authentication for Foundry"
+grep -Fq "category: 'ContainerRegistry'" "$template" ||
+  private_die "private Foundry project requires a managed-identity ACR connection"
+grep -Fq "projectContainerRegistryConnectionBootstrap" "$template" ||
+  private_die "private Foundry project ACR connection must be deployment ordered"
 grep -Fq "param standardAgentSearchLocation string = 'westus3'" "$template" ||
   private_die "private Search must avoid the documented East US 2 capacity constraint"
 grep -Fq "location: standardAgentSearchLocation" "$template" ||
