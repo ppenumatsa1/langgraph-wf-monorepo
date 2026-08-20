@@ -61,5 +61,9 @@ grep -Fq "id: searchPrivateEndpointSubnetBootstrap!.id" "$template" ||
   private_die "private Search endpoint must use its same-region subnet"
 grep -Fq "var isFoundryReadyPhase = isBootstrap && deployFoundryReadyResources" "$template" ||
   private_die "Foundry endpoint and project resources require the explicit readiness phase"
+grep -Fq "var isFoundryConvergencePhase = isBootstrap && !deployFoundryReadyResources" "$template" ||
+  private_die "Foundry account mutation must be isolated to the convergence phase"
+grep -Fq "parent: foundryAccountRoleScope" "$template" ||
+  private_die "Foundry-ready resources must bind to the existing account without issuing another account PUT"
 
 echo "Private Bicep contract passed."

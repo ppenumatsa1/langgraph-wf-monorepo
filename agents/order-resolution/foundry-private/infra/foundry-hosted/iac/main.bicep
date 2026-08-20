@@ -195,6 +195,7 @@ param privateRunnerSshPublicKey string = ''
 param bootstrapRuntimeDatabaseUrl string = newGuid()
 
 var isBootstrap = infrastructureMode == 'bootstrap'
+var isFoundryConvergencePhase = isBootstrap && !deployFoundryReadyResources
 var isFoundryReadyPhase = isBootstrap && deployFoundryReadyResources
 var foundryProjectEndpoint = 'https://${foundryAccountName}.services.ai.azure.com/api/projects/${foundryProjectName}'
 var foundryHostedResponsesUrl = '${foundryProjectEndpoint}/agents/${hostedAgentName}/endpoint/protocols/openai/responses?api-version=v1'
@@ -476,7 +477,7 @@ resource searchPrivateDnsZoneVnetLinkBootstrap 'Microsoft.Network/privateDnsZone
   }
 }
 
-resource foundryAccountBootstrap 'Microsoft.CognitiveServices/accounts@2025-06-01' = if (isBootstrap) {
+resource foundryAccountBootstrap 'Microsoft.CognitiveServices/accounts@2025-06-01' = if (isFoundryConvergencePhase) {
   name: foundryAccountName
   location: location
   kind: 'AIServices'
@@ -508,7 +509,7 @@ resource foundryAccountBootstrap 'Microsoft.CognitiveServices/accounts@2025-06-0
   tags: tags
 }
 
-resource foundryChatDeploymentBootstrap 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (isBootstrap) {
+resource foundryChatDeploymentBootstrap 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (isFoundryConvergencePhase) {
   parent: foundryAccountBootstrap
   name: foundryChatDeploymentName
   sku: {
@@ -526,7 +527,7 @@ resource foundryChatDeploymentBootstrap 'Microsoft.CognitiveServices/accounts/de
   }
 }
 
-resource foundryEmbeddingsDeploymentBootstrap 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (isBootstrap) {
+resource foundryEmbeddingsDeploymentBootstrap 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (isFoundryConvergencePhase) {
   parent: foundryAccountBootstrap
   name: foundryEmbeddingsDeploymentName
   sku: {
@@ -547,7 +548,7 @@ resource foundryEmbeddingsDeploymentBootstrap 'Microsoft.CognitiveServices/accou
   ]
 }
 
-resource foundryEvaluationDeploymentBootstrap 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (isBootstrap) {
+resource foundryEvaluationDeploymentBootstrap 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (isFoundryConvergencePhase) {
   parent: foundryAccountBootstrap
   name: foundryEvaluationDeploymentName
   sku: {
@@ -856,7 +857,7 @@ resource foundryPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@202
       {
         name: 'foundry-account'
         properties: {
-          privateLinkServiceId: foundryAccountBootstrap!.id
+          privateLinkServiceId: foundryAccountRoleScope.id
           groupIds: [
             'account'
           ]
@@ -1163,7 +1164,7 @@ resource azureMonitorPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndp
 }
 
 resource foundryProjectBootstrap 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = if (isFoundryReadyPhase) {
-  parent: foundryAccountBootstrap
+  parent: foundryAccountRoleScope
   name: foundryProjectName
   location: location
   identity: {
@@ -1227,7 +1228,7 @@ resource projectSearchConnectionBootstrap 'Microsoft.CognitiveServices/accounts/
 }
 
 resource accountApplicationInsightsConnectionBootstrap 'Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
-  parent: foundryAccountBootstrap
+  parent: foundryAccountRoleScope
   name: 'ApplicationInsights'
   properties: {
     category: 'AppInsights'

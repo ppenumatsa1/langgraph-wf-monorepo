@@ -278,6 +278,18 @@ bootstrap, and excludes generated pytest scratch content.
   and Search VNet subnet resource. Existing successful Search resources are
   converged in place; no deletion or recreation is required.
 
+### Fifth provisioning attempt: phase-two account mutation
+
+- The ordered peerings and complete phase-one deployment succeeded.
+- Although the phase-two preview labeled the Foundry account `Skip`, the
+  emitted account declaration still caused an asynchronous account PUT. The
+  account returned to `Accepted` after the readiness poll, and the private
+  endpoint again failed with `AccountProvisioningStateInvalid`.
+- Account/network injection and model resources are now emitted only in the
+  convergence phase. The endpoint, project, connections, RBAC, and project
+  capability host bind to an `existing` Foundry account scope in phase two, so
+  the post-readiness deployment cannot issue another account PUT.
+
 ## Open implementation follow-through
 
 1. Run noninteractive preview and private readiness checks from the private
