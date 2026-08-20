@@ -22,7 +22,8 @@ repository_url="$(private_required_env_value PRIVATE_SOURCE_REPOSITORY_URL)"
 expected_commit="$(git -C "$PRIVATE_ROOT_DIR" rev-parse HEAD)"
 release_id="$(private_release_id)"
 command_name="private-runner-bootstrap"
-protected_file="/dev/shm/foundry-private-protected-$$.json"
+request_file="/dev/shm/foundry-private-run-command-$$.json"
+vm_id="/subscriptions/$subscription_id/resourceGroups/$runner_group/providers/Microsoft.Compute/virtualMachines/$runner_name"
 
 [[ "$repository_url" =~ ^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git$ ]] ||
   private_die "PRIVATE_SOURCE_REPOSITORY_URL must be an approved HTTPS GitHub repository"
@@ -50,7 +51,7 @@ azd_env_b64="$(
 
 cleanup_command() {
   unset token azd_env_b64
-  rm -f -- "$protected_file"
+  rm -f -- "$request_file"
   az vm run-command delete \
     --subscription "$subscription_id" \
     --resource-group "$runner_group" \
@@ -61,27 +62,42 @@ cleanup_command() {
 }
 trap cleanup_command EXIT
 umask 077
-printf '[{"name":"GITHUB_TOKEN","value":"%s"},{"name":"AZD_ENV_B64","value":"%s"}]\n' \
-  "$token" "$azd_env_b64" >"$protected_file"
+jq -n \
+  --rawfile script "$SCRIPT_DIR/runner_bootstrap_remote.sh" \
+  --arg location "$location" \
+  --arg expectedCommit "$expected_commit" \
+  --arg repositoryUrl "$repository_url" \
+  --arg workdir "$runner_workdir" \
+  --arg environment "$environment" \
+  --arg subscriptionId "$subscription_id" \
+  --arg token "$token" \
+  --arg azdEnv "$azd_env_b64" \
+  '{
+    location: $location,
+    properties: {
+      source: {script: $script},
+      asyncExecution: true,
+      timeoutInSeconds: 3600,
+      parameters: [
+        {name: "EXPECTED_COMMIT", value: $expectedCommit},
+        {name: "REPOSITORY_URL", value: $repositoryUrl},
+        {name: "WORKDIR", value: $workdir},
+        {name: "AZD_ENV_NAME", value: $environment},
+        {name: "AZURE_SUBSCRIPTION_ID", value: $subscriptionId},
+        {name: "AZURE_LOCATION", value: $location}
+      ],
+      protectedParameters: [
+        {name: "GITHUB_TOKEN", value: $token},
+        {name: "AZD_ENV_B64", value: $azdEnv}
+      ]
+    }
+  }' >"$request_file"
 
-az vm run-command create \
-    --subscription "$subscription_id" \
-    --resource-group "$runner_group" \
-    --location "$location" \
-    --vm-name "$runner_name" \
-    --run-command-name "$command_name" \
-    --script "@$SCRIPT_DIR/runner_bootstrap_remote.sh" \
-    --async-execution true \
-    --timeout-in-seconds 3600 \
-    --parameters \
-      "EXPECTED_COMMIT=$expected_commit" \
-      "REPOSITORY_URL=$repository_url" \
-      "WORKDIR=$runner_workdir" \
-      "AZD_ENV_NAME=$environment" \
-      "AZURE_SUBSCRIPTION_ID=$subscription_id" \
-      "AZURE_LOCATION=$location" \
-    --protected-parameters "@$protected_file" \
-    --output none
+az rest \
+  --method put \
+  --url "https://management.azure.com${vm_id}/runCommands/${command_name}?api-version=2024-11-01" \
+  --body "@$request_file" \
+  --output none
 unset token azd_env_b64
 
 result=""

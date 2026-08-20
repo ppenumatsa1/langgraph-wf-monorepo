@@ -305,6 +305,20 @@ bootstrap, and excludes generated pytest scratch content.
   authorization, and CLI failures still propagate rather than being treated
   as pending.
 
+### Private-runner protected parameter transport
+
+- The installed Azure CLI accepted a JSON file for
+  `az vm run-command create --protected-parameters` but silently omitted those
+  parameters; the runner correctly failed closed because `GITHUB_TOKEN` was
+  absent.
+- A harmless live probe confirmed shorthand `name=value` works but would place
+  secret values in local process arguments.
+- Runner bootstrap now sends the complete Managed Run Command REST payload
+  from a mode-`0600` file in `/dev/shm`. The process arguments contain only the
+  file path, while `GITHUB_TOKEN` and the AZD environment remain in the ARM
+  `protectedParameters` collection. A live probe confirmed the protected value
+  reaches the VM without appearing in command output.
+
 ## Open implementation follow-through
 
 1. Run noninteractive preview and private readiness checks from the private
