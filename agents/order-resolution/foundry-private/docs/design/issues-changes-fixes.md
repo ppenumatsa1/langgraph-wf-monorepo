@@ -342,6 +342,11 @@ bootstrap, and excludes generated pytest scratch content.
   packaging because `release.sh` records `runner_bootstrap` while the evidence
   timing schema omitted that stage. The stage is now part of the authoritative
   timing order between `local_gates` and `runner_preflight`.
+- The next release reached private readiness and found that Azure serializes
+  quota values as JSON numbers such as `350.0`; the integer-only shell regex
+  rejected valid usage. Preflight now validates numeric JSON types and
+  `current <= limit`. A fully allocated existing deployment is valid even when
+  it has no remaining capacity for a new deployment.
 
 ## Open implementation follow-through
 

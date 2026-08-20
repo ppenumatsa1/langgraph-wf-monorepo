@@ -50,8 +50,12 @@ verify_deployment() {
     private_die "regional quota record is missing for private $purpose model $model"
   quota_current="$(jq -r '.currentValue // .current // empty' <<<"$quota")"
   quota_limit="$(jq -r '.limit // empty' <<<"$quota")"
-  [[ "$quota_current" =~ ^[0-9]+$ && "$quota_limit" =~ ^[0-9]+$ && "$quota_current" -le "$quota_limit" ]] ||
-    private_die "private $purpose model quota is exhausted or malformed"
+  jq -e '
+    ((.currentValue // .current // null) | type) == "number"
+    and ((.limit // null) | type) == "number"
+    and (.currentValue // .current) <= .limit
+  ' <<<"$quota" >/dev/null ||
+    private_die "private $purpose model quota usage is malformed or exceeds its limit"
   jq -n \
     --arg purpose "$purpose" \
     --arg deployment "$deployment_name" \
