@@ -267,6 +267,17 @@ bootstrap, and excludes generated pytest scratch content.
   creates the Foundry endpoint, project, connections, RBAC, and project
   capability host. This removes both blind retries and human approval flags.
 
+### Fourth provisioning attempt: VNet child-resource ordering
+
+- S1 Search and its same-region private endpoint provisioned successfully in
+  `westus3`, resolving the external Search capacity blocker.
+- ARM attempted both global peerings while the new Search VNet's subnet PUT was
+  still `Updating`, and rejected them with
+  `ReferencedResourceNotProvisioned`.
+- Both peering resources now explicitly depend on completion of every primary
+  and Search VNet subnet resource. Existing successful Search resources are
+  converged in place; no deletion or recreation is required.
+
 ## Open implementation follow-through
 
 1. Run noninteractive preview and private readiness checks from the private

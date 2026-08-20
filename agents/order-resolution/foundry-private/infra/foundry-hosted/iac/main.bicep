@@ -318,6 +318,13 @@ resource privateToSearchVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/
       id: searchPrivateVnetBootstrap!.id
     }
   }
+  dependsOn: [
+    foundryAgentSubnetBootstrap
+    containerAppsSubnetBootstrap
+    privateEndpointSubnetBootstrap
+    privateRunnerSubnetBootstrap
+    searchPrivateEndpointSubnetBootstrap
+  ]
 }
 
 resource searchToPrivateVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = if (isBootstrap) {
@@ -332,6 +339,13 @@ resource searchToPrivateVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/
       id: privateVnetBootstrap!.id
     }
   }
+  dependsOn: [
+    foundryAgentSubnetBootstrap
+    containerAppsSubnetBootstrap
+    privateEndpointSubnetBootstrap
+    privateRunnerSubnetBootstrap
+    searchPrivateEndpointSubnetBootstrap
+  ]
 }
 
 resource privateRunnerNsgBootstrap 'Microsoft.Network/networkSecurityGroups@2024-05-01' = if (isBootstrap) {
