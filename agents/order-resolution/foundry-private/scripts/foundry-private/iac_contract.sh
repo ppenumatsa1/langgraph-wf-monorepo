@@ -57,6 +57,10 @@ grep -Fq "projectContainerRegistryConnectionBootstrap" "$template" ||
   private_die "private Foundry project ACR connection must be deployment ordered"
 grep -Fq "Order Resolution Private ACR Pull Assigner" "$template" ||
   private_die "private runner must grant per-version Foundry identities only registry-scoped RBAC"
+grep -Fq "RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {7f951dda-4ed3-4680-a7ca-43fe172d538d}" "$template" ||
+  private_die "private runner role-assignment permission must be conditioned to AcrPull"
+grep -Fq "conditionVersion: '2.0'" "$template" ||
+  private_die "private runner AcrPull assignment condition must use ABAC version 2.0"
 grep -Fq "param standardAgentSearchLocation string = 'westus3'" "$template" ||
   private_die "private Search must avoid the documented East US 2 capacity constraint"
 grep -Fq "location: standardAgentSearchLocation" "$template" ||

@@ -1371,6 +1371,8 @@ resource containerRegistryRoleScope 'Microsoft.ContainerRegistry/registries@2025
   name: containerRegistryName
 }
 
+var acrPullAssignmentCondition = '((!(ActionMatches{\'Microsoft.Authorization/roleAssignments/write\'})) OR (@Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {7f951dda-4ed3-4680-a7ca-43fe172d538d}))'
+
 resource privateRunnerAcrRoleAssignerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = if (isBootstrap) {
   name: '6eae6c86-0504-4a59-87d4-d4d6edecad87'
   properties: {
@@ -1491,6 +1493,8 @@ resource privateRunnerAcrRoleAssignerBootstrap 'Microsoft.Authorization/roleAssi
     roleDefinitionId: privateRunnerAcrRoleAssignerRole.id
     principalId: privateRunnerVmBootstrap!.identity.principalId
     principalType: 'ServicePrincipal'
+    condition: acrPullAssignmentCondition
+    conditionVersion: '2.0'
   }
   dependsOn: [
     containerRegistryBootstrap

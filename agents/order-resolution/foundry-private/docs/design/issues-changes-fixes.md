@@ -394,7 +394,8 @@ bootstrap, and excludes generated pytest scratch content.
   `AcrPull` assignment. The runner now grants only `AcrPull` at the ACR scope
   immediately after version creation, verifies propagation, and only then
   polls activation. Its custom role permits role-assignment read/write only at
-  that registry assignment scope.
+  that registry assignment scope, and its version 2.0 RBAC condition rejects
+  writes for every role definition except `AcrPull`.
 
 ## Open implementation follow-through
 
