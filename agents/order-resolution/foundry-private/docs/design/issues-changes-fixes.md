@@ -351,6 +351,11 @@ bootstrap, and excludes generated pytest scratch content.
   `false // fallback` selects the fallback, so a correctly disabled ACR admin
   user appeared unset. The registry guard now tests both supported property
   paths for an explicit JSON `false` value.
+- The ACR packaging and final verification guards retained the same flattened
+  private-endpoint approval path already corrected in reconciliation. Both now
+  read the live ARM shape under
+  `.properties.privateLinkServiceConnectionState.status`, and the script
+  contract rejects reintroducing the flattened path.
 
 ## Open implementation follow-through
 

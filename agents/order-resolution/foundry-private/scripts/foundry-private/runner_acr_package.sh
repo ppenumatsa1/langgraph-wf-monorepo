@@ -27,7 +27,7 @@ jq -e '(.adminUserEnabled == false) or (.properties.adminUserEnabled == false)' 
   <<<"$registry_json" >/dev/null ||
   private_die "private ACR admin user must be disabled"
 connections="$(az network private-endpoint-connection list --id "$(jq -r '.id' <<<"$registry_json")" --output json)"
-jq -e 'any(.[]; (.privateLinkServiceConnectionState.status // "") == "Approved")' \
+jq -e 'any(.[]; (.properties.privateLinkServiceConnectionState.status // "") == "Approved")' \
   <<<"$connections" >/dev/null ||
   private_die "private ACR needs an approved private endpoint connection"
 

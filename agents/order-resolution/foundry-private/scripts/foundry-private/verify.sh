@@ -34,7 +34,7 @@ assert_private_endpoint() {
   local label="$2"
   local connections
   connections="$(az network private-endpoint-connection list --id "$resource_id" --output json)"
-  jq -e 'any(.[]; (.privateLinkServiceConnectionState.status // "") == "Approved")' \
+  jq -e 'any(.[]; (.properties.privateLinkServiceConnectionState.status // "") == "Approved")' \
     <<<"$connections" >/dev/null ||
     private_die "$label is missing an approved private endpoint"
 }

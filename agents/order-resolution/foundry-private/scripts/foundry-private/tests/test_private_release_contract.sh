@@ -91,6 +91,12 @@ grep -Fq 'export HOME=/root' "$scripts_dir/runner_stage.sh"
 grep -Fq '64 - ${#deployment_prefix}' "$scripts_dir/runner_postgres.sh"
 grep -Fq 'type) == "number"' "$scripts_dir/model_preflight.sh"
 grep -Fq '(.adminUserEnabled == false)' "$scripts_dir/runner_acr_package.sh"
+if grep -R '\.privateLinkServiceConnectionState\.status' \
+  "$scripts_dir/runner_acr_package.sh" "$scripts_dir/verify.sh" |
+  grep -v '\.properties\.privateLinkServiceConnectionState\.status' >/dev/null; then
+  printf 'Private endpoint approval checks must use the ARM properties path.\n' >&2
+  exit 1
+fi
 grep -Fq 'azd auth login --managed-identity' "$scripts_dir/runner_bootstrap_remote.sh"
 grep -Fq 'persistent_dir="/var/lib/order-resolution"' "$scripts_dir/runner_bootstrap_remote.sh"
 grep -Fq 'persistent_env="$persistent_dir/private-runner.env"' "$scripts_dir/runner_bootstrap_remote.sh"
