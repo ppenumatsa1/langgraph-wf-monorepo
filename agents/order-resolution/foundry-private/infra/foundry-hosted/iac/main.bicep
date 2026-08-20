@@ -539,11 +539,6 @@ resource standardAgentSearchBootstrap 'Microsoft.Search/searchServices@2024-06-0
     type: 'SystemAssigned'
   }
   properties: {
-    authOptions: {
-      aadOrApiKey: {
-        aadAuthFailureMode: 'http401WithBearerChallenge'
-      }
-    }
     disableLocalAuth: true
     hostingMode: 'default'
     partitionCount: 1

@@ -208,6 +208,20 @@ bootstrap, and excludes generated pytest scratch content.
 - The final fail-closed preview completed in 31 seconds with planned creates
   only and no delete or replace operations.
 
+### First provisioning attempt
+
+- The first live provisioning attempt created the initial private network,
+  monitoring, ACR, PostgreSQL, Cosmos DB, runner, Container Apps environment,
+  and several private endpoints, then failed closed before Foundry activation.
+- Azure AI Search rejected the template because `authOptions` must be null
+  when `disableLocalAuth` is true. The explicit `authOptions` block was
+  removed; Entra-only access remains enforced through `disableLocalAuth: true`.
+- ARM also reported a dependent network operation still in progress after the
+  primary Search failure. No cleanup or destructive retry was attempted.
+- Bicep, script contracts, and a fresh preview passed after the fix. The
+  retry preview contains creates/modifies only and no delete or replace
+  operation.
+
 ## Open implementation follow-through
 
 1. Run noninteractive preview and private readiness checks from the private
