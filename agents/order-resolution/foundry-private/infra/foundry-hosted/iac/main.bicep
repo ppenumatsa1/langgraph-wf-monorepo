@@ -533,7 +533,7 @@ resource standardAgentSearchBootstrap 'Microsoft.Search/searchServices@2024-06-0
   name: standardAgentSearchName
   location: location
   sku: {
-    name: 'standard'
+    name: 'basic'
   }
   identity: {
     type: 'SystemAssigned'

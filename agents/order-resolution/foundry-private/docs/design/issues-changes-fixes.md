@@ -222,6 +222,23 @@ bootstrap, and excludes generated pytest scratch content.
   retry preview contains creates/modifies only and no delete or replace
   operation.
 
+### Second provisioning attempt
+
+- The retry converged the Foundry account, network injection, account
+  capability host, and all three quota-safe model deployments. The account is
+  `Succeeded`, public access is disabled, and the Foundry subnet has the
+  expected successful `legionservicelink`.
+- Azure AI Search S1 then failed with
+  `InsufficientResourcesAvailable` in `eastus2`. The project and project
+  capability host had not been created, so no capability-host cleanup or
+  network replacement was required.
+- Microsoft Learn documents Basic as a production-capable dedicated tier and
+  confirms inbound Private Link is unavailable only on Free. Standard Agent
+  Setup requires a BYO Azure AI Search resource but does not state an S1
+  minimum. The isolated single-project lane therefore uses Basic rather than
+  changing region, reusing another lane's Search resource, weakening private
+  access, or scaling to a substantially more expensive tier.
+
 ## Open implementation follow-through
 
 1. Run noninteractive preview and private readiness checks from the private
