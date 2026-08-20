@@ -326,6 +326,10 @@ bootstrap, and excludes generated pytest scratch content.
 - Managed Run Command does not define `HOME`; AZD refused to infer a config
   path after dependencies installed. The root-run bootstrap now sets
   `HOME=/root` explicitly before Azure CLI or AZD initialization.
+- Every subsequent runner stage starts in a new Run Command process, so the
+  same explicit `HOME=/root` contract now lives in the shared stage dispatcher
+  used by PostgreSQL, packaging, deployment, smoke, E2E, evaluation, and
+  telemetry.
 
 ## Open implementation follow-through
 
