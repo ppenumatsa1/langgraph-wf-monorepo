@@ -23,7 +23,8 @@ registry_json="$(az acr show --subscription "$subscription_id" --resource-group 
   private_die "private ACR must use the Premium SKU"
 [[ "$(jq -r '.properties.publicNetworkAccess // .publicNetworkAccess // empty' <<<"$registry_json")" == "Disabled" ]] ||
   private_die "private ACR public network access must be Disabled"
-[[ "$(jq -r '.adminUserEnabled // .properties.adminUserEnabled // empty' <<<"$registry_json")" == "false" ]] ||
+jq -e '(.adminUserEnabled == false) or (.properties.adminUserEnabled == false)' \
+  <<<"$registry_json" >/dev/null ||
   private_die "private ACR admin user must be disabled"
 connections="$(az network private-endpoint-connection list --id "$(jq -r '.id' <<<"$registry_json")" --output json)"
 jq -e 'any(.[]; (.privateLinkServiceConnectionState.status // "") == "Approved")' \

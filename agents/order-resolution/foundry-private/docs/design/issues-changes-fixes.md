@@ -347,6 +347,10 @@ bootstrap, and excludes generated pytest scratch content.
   rejected valid usage. Preflight now validates numeric JSON types and
   `current <= limit`. A fully allocated existing deployment is valid even when
   it has no remaining capacity for a new deployment.
+- Immutable packaging then exposed a jq boolean-defaulting defect:
+  `false // fallback` selects the fallback, so a correctly disabled ACR admin
+  user appeared unset. The registry guard now tests both supported property
+  paths for an explicit JSON `false` value.
 
 ## Open implementation follow-through
 
