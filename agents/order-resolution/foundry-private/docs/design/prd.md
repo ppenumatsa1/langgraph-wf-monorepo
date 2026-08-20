@@ -27,7 +27,9 @@ privacy boundaries, and private Foundry hosting.
 
 ## Private-network requirements
 
-The hosted lane uses one isolated BYO VNet with address space `10.74.0.0/16`.
+The hosted lane uses an isolated primary BYO VNet with address space
+`10.74.0.0/16` plus a globally peered `westus3` VNet for the Search
+private endpoint.
 
 | Component | Network contract |
 | --- | --- |
@@ -35,6 +37,7 @@ The hosted lane uses one isolated BYO VNet with address space `10.74.0.0/16`.
 | Container Apps | `10.74.2.0/23`; external frontend and internal wrapper |
 | Private endpoints | `10.74.4.0/24` for Foundry, PostgreSQL, ACR, and approved services |
 | Private runner | `10.74.5.0/27`, no public administrative ingress |
+| Search private endpoint | `10.75.0.0/27`, same-region with Search and globally peered to the primary VNet |
 | DNS and identity | Private DNS zones/links, managed identity, and least-privilege RBAC are mandatory |
 
 Only the frontend is externally reachable. The wrapper, Foundry, PostgreSQL,

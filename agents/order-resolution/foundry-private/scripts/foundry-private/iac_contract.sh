@@ -49,5 +49,17 @@ grep -Fq "targetPort: 8000" "$template" ||
   private_die "private backend ingress must target port 8000"
 grep -Fq "targetPort: 5173" "$template" ||
   private_die "private frontend ingress must target port 5173"
+grep -Fq "param standardAgentSearchLocation string = 'westus3'" "$template" ||
+  private_die "private Search must avoid the documented East US 2 capacity constraint"
+grep -Fq "location: standardAgentSearchLocation" "$template" ||
+  private_die "private Search resource and connection must use the approved Search region"
+grep -Fq "searchPrivateVnetAddressSpace = '10.75.0.0/24'" "$template" ||
+  private_die "private Search requires a same-region secondary VNet"
+grep -Fq "privateToSearchVnetPeeringBootstrap" "$template" ||
+  private_die "private Search VNet must be globally peered to the primary lane VNet"
+grep -Fq "id: searchPrivateEndpointSubnetBootstrap!.id" "$template" ||
+  private_die "private Search endpoint must use its same-region subnet"
+grep -Fq "var isFoundryReadyPhase = isBootstrap && deployFoundryReadyResources" "$template" ||
+  private_die "Foundry endpoint and project resources require the explicit readiness phase"
 
 echo "Private Bicep contract passed."

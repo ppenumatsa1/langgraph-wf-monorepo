@@ -10,9 +10,14 @@ React frontend Container App that proxies to an internal FastAPI wrapper.
 - Subscription: `7df95e88-701c-4693-af77-3159f83b558d`
 - Resource group: `rg-langgraph-ora-foundry-private`
 - Region: `eastus2`
+- Azure AI Search region: `westus3` because current Microsoft Learn guidance
+  marks `eastus2` unavailable for new Search services and scaling. Search and
+  its private endpoint use a small same-region VNet globally peered to the
+  primary `eastus2` VNet.
 - AZD environment: `order-resolution-foundry-private`
 - Agent: `order-resolution-hosted`
 - VNet: `10.74.0.0/16`
+- Search private-endpoint VNet: `10.75.0.0/24`
 
 The VNet has dedicated, non-overlapping subnets:
 
@@ -22,6 +27,7 @@ The VNet has dedicated, non-overlapping subnets:
 | Container Apps infrastructure | `10.74.2.0/23` |
 | Private endpoints | `10.74.4.0/24` |
 | Azure Run Command runner | `10.74.5.0/27` |
+| Search private endpoint | `10.75.0.0/27` in the globally peered `westus3` VNet |
 
 The Foundry agent subnet is delegated to `Microsoft.App/environments` and must
 not be reused by Container Apps or the runner. The frontend is the only public
@@ -77,6 +83,14 @@ make foundry-private-what-if
 
 The what-if guard fails on unplanned delete or replace operations. Provisioning
 is explicit and separate from routine delivery:
+
+Bootstrap is intentionally two phase. The first preview and deployment
+converge the Foundry account, account capability host, network injection, and
+dependencies. A bounded readiness poll then requires both Foundry resources to
+report `Succeeded`; only the second preview and deployment can create the
+Foundry private endpoint, project, project connections, RBAC, and project
+capability host. This prevents the private endpoint from racing the account's
+transient `Accepted` state.
 
 ```bash
 make foundry-private-provision \

@@ -44,6 +44,19 @@ Private DNS zones must resolve all private service names from the wrapper and
 runner. A public hostname or public administrative ingress is never an
 acceptable fallback.
 
+Azure AI Search is the only cross-region dependency: the S1 service is
+lane-owned in `westus3` because Microsoft Learn currently marks `eastus2`
+unavailable for new Search services and scaling. Its private endpoint uses a
+same-region `westus3` VNet globally peered to the primary `eastus2` VNet, the
+Search private DNS zone links both VNets, and public access stays disabled.
+
+Foundry bootstrap uses two fail-closed IaC phases. Phase one converges the
+account, account capability host, network injection, and dependencies. An
+automatic bounded poll requires the account and account capability host to be
+`Succeeded` before phase two previews and deploys the Foundry private endpoint,
+project, connections, project RBAC, and project capability host. No human
+approval flag or blind retry is involved.
+
 ## Deployment stages
 
 ### Phase 1: validate and authorize

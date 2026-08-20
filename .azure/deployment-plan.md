@@ -17,6 +17,10 @@ Insights observability.
 
 - Subscription: `7df95e88-701c-4693-af77-3159f83b558d`
 - Region: `eastus2`
+- Azure AI Search dependency region: `westus3`; Microsoft Learn currently
+  marks `eastus2` as unavailable for new Search services and scaling. Search
+  and its private endpoint use a small same-region VNet globally peered to the
+  primary `eastus2` lane VNet.
 - Resource group: `rg-langgraph-ora-foundry-private`
 - AZD environment: `order-resolution-foundry-private`
 - VNet: `10.74.0.0/16`
@@ -123,7 +127,8 @@ Validation results:
 
 ## Section 7: Validation Proof
 
-Recorded at `2026-08-20T15:54:41Z`.
+Recorded at `2026-08-20T15:54:41Z`; Search-region and two-phase Foundry
+remediation revalidated at `2026-08-20T20:26:00Z`.
 
 | Validation | Command or tool | Result |
 | --- | --- | --- |
@@ -141,7 +146,7 @@ Recorded at `2026-08-20T15:54:41Z`.
 | Backend | `make test` | Ruff passed and `144/144` pytest tests passed. |
 | Frontend | `npm --prefix frontend run typecheck`, `npm --prefix frontend run lint`, and `npm --prefix frontend run build` | Typecheck, lint, and production build passed. |
 | Docker/local E2E | Existing integrated private-lane Docker and Playwright gates | Docker workflow `7/7`, workflow Playwright `7/7`, and selected-thread Playwright `7/7` passed before Azure validation. |
-| Provision preview | `make foundry-private-what-if` | Passed in 31 seconds with planned creates only and no delete or replace operations. |
+| Provision preview | `make foundry-private-what-if` with `DEPLOY_FOUNDRY_READY_RESOURCES=false`, then `true` | Phase-one and phase-two previews passed in 35 and 31 seconds with no delete or replace operations. |
 | Git/shell hygiene | `git diff --check`, `git diff --cached --check`, and `bash -n scripts/foundry-private/*.sh` | Passed. Generated runtime state and test scratch files remain excluded. |
 
 Preview remediation history:
@@ -152,6 +157,12 @@ Preview remediation history:
    `Standard_D2as_v7`.
 3. Removed unsupported min/max fields from the Container Apps Consumption
    workload profile.
+4. Moved the lane-owned S1 Search service and its private endpoint to
+   `westus3`, where Search creation is supported, using a small same-region
+   VNet globally peered to the primary `eastus2` VNet and private DNS linked
+   to both.
+5. Split Foundry bootstrap into two fail-closed previews/deployments with a
+   bounded account and account-capability-host `Succeeded` gate between them.
 
 ## Stop conditions
 

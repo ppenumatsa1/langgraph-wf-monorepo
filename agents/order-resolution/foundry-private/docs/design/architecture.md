@@ -40,8 +40,10 @@ Deliver a verifiable order-resolution workflow that is:
 
 ## Private network contract
 
-All hosted components use one isolated BYO VNet with address space
-`10.74.0.0/16`.
+Hosted components use a primary isolated BYO VNet with address space
+`10.74.0.0/16`. Azure AI Search uses a small `westus3` VNet with address space
+`10.75.0.0/24`, globally peered to the primary VNet, so the Search service,
+private endpoint, and endpoint VNet satisfy the same-region contract.
 
 | Reservation | CIDR | Purpose |
 | --- | --- | --- |
@@ -49,6 +51,7 @@ All hosted components use one isolated BYO VNet with address space
 | Container Apps | `10.74.2.0/23` | External frontend and internal FastAPI wrapper |
 | Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and other approved private endpoints |
 | Private runner | `10.74.5.0/27` | Noninteractive Azure validation, packaging, and mutation |
+| Search private endpoint | `10.75.0.0/27` | Same-region private endpoint for the `westus3` Search service |
 
 Private DNS zones and VNet links are mandatory. Managed identities and
 least-privilege RBAC are required for service-to-service access. A missing
@@ -57,6 +60,10 @@ a fail-closed blocker; a public endpoint is not a fallback. The runner subnet
 uses an outbound-only NAT Gateway for GitHub, package feeds, Azure control
 plane, and extension acquisition. The VM NIC has no public IP and the NSG
 permits only required HTTP/HTTPS egress before denying other Internet traffic.
+Foundry and the primary VNet remain in `eastus2`; the lane-owned Azure AI Search
+dependency is in `westus3` because Microsoft Learn currently marks `eastus2`
+unavailable for new Search services. Its private endpoint is in the peered
+`westus3` VNet, and the Search private DNS zone is linked to both VNets.
 
 ## Logical view
 

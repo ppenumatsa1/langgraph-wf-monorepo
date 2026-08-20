@@ -65,6 +65,7 @@ set_sensitive_default() {
 }
 
 set_default INFRASTRUCTURE_MODE bootstrap
+set_default DEPLOY_FOUNDRY_READY_RESOURCES false
 set_default FOUNDRY_ACCOUNT_NAME "${name_base}ai"
 set_default FOUNDRY_PROJECT_NAME order-resolution-private
 set_default FOUNDRY_CUSTOM_SUBDOMAIN_NAME "$(private_required_env_value FOUNDRY_ACCOUNT_NAME)"
@@ -86,6 +87,7 @@ set_default CONTAINER_REGISTRY_NAME "${name_base}acr"
 set_default STANDARD_AGENT_STORAGE_ACCOUNT_NAME "${name_base}st"
 set_default STANDARD_AGENT_COSMOS_ACCOUNT_NAME "${name_base}cosmos"
 set_default STANDARD_AGENT_SEARCH_NAME "${name_base}search"
+set_default STANDARD_AGENT_SEARCH_LOCATION westus3
 set_default LOG_ANALYTICS_WORKSPACE_NAME "${name_base}-log"
 set_default APPLICATION_INSIGHTS_NAME "${name_base}-appi"
 set_default AZURE_MONITOR_PRIVATE_LINK_SCOPE_NAME "${name_base}-ampls"

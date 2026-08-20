@@ -13,6 +13,11 @@ profile_path="${FOUNDRY_PRIVATE_DEPLOYMENT_PROFILE:-}"
 private_require_target
 "$SCRIPT_DIR/bootstrap_env.sh"
 "$SCRIPT_DIR/iac_contract.sh"
+private_azd_set DEPLOY_FOUNDRY_READY_RESOURCES false
+"$SCRIPT_DIR/what_if.sh"
+private_azd provision --cwd "$PRIVATE_AZD_DIR" --no-prompt
+"$SCRIPT_DIR/wait_foundry_ready.sh"
+private_azd_set DEPLOY_FOUNDRY_READY_RESOURCES true
 "$SCRIPT_DIR/what_if.sh"
 private_azd provision --cwd "$PRIVATE_AZD_DIR" --no-prompt
 "$SCRIPT_DIR/reconcile.sh"

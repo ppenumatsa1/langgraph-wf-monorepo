@@ -7,6 +7,9 @@ targetScope = 'resourceGroup'
 @description('bootstrap creates the private lane. reuse resolves existing private-lane names without mutating resources or role assignments.')
 param infrastructureMode string = 'bootstrap'
 
+@description('Deploy resources that require the Foundry account and account capability host to be fully Succeeded.')
+param deployFoundryReadyResources bool = false
+
 @minLength(3)
 @maxLength(15)
 @description('Lowercase alphanumeric prefix used to derive private-lane resource names.')
@@ -104,6 +107,9 @@ param standardAgentCosmosAccountName string = take('${toLower(namePrefix)}${uniq
 @description('Private standard-agent Azure AI Search service name.')
 param standardAgentSearchName string = take('${toLower(namePrefix)}${uniqueString(subscription().id, resourceGroup().id, namePrefix)}search', 60)
 
+@description('Azure AI Search region; East US 2 currently blocks creation of new Search services.')
+param standardAgentSearchLocation string = 'westus3'
+
 @description('Log Analytics workspace name.')
 param logAnalyticsWorkspaceName string = take('${namePrefix}-${uniqueString(subscription().id, resourceGroup().id, namePrefix)}-log', 63)
 
@@ -189,13 +195,18 @@ param privateRunnerSshPublicKey string = ''
 param bootstrapRuntimeDatabaseUrl string = newGuid()
 
 var isBootstrap = infrastructureMode == 'bootstrap'
+var isFoundryReadyPhase = isBootstrap && deployFoundryReadyResources
 var foundryProjectEndpoint = 'https://${foundryAccountName}.services.ai.azure.com/api/projects/${foundryProjectName}'
 var foundryHostedResponsesUrl = '${foundryProjectEndpoint}/agents/${hostedAgentName}/endpoint/protocols/openai/responses?api-version=v1'
 var privateVnetAddressSpace = '10.74.0.0/16'
+var searchPrivateVnetAddressSpace = '10.75.0.0/24'
 var foundryAgentSubnetPrefix = '10.74.0.0/24'
 var containerAppsSubnetPrefix = '10.74.2.0/23'
 var privateEndpointSubnetPrefix = '10.74.4.0/24'
 var privateRunnerSubnetPrefix = '10.74.5.0/27'
+var searchPrivateEndpointSubnetPrefix = '10.75.0.0/27'
+var searchPrivateVnetName = '${privateVnetName}-search'
+var searchPrivateEndpointSubnetName = 'private-endpoints'
 var projectCapabilityHostName = 'order-resolution-private-agent-host'
 var accountCapabilityHostName = '${foundryAccountName}@aml_aiagentservice'
 var privateDnsZoneNames = [
@@ -226,6 +237,19 @@ resource privateVnetBootstrap 'Microsoft.Network/virtualNetworks@2024-05-01' = i
     addressSpace: {
       addressPrefixes: [
         privateVnetAddressSpace
+      ]
+    }
+  }
+  tags: tags
+}
+
+resource searchPrivateVnetBootstrap 'Microsoft.Network/virtualNetworks@2024-05-01' = if (isBootstrap) {
+  name: searchPrivateVnetName
+  location: standardAgentSearchLocation
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        searchPrivateVnetAddressSpace
       ]
     }
   }
@@ -270,6 +294,43 @@ resource privateEndpointSubnetBootstrap 'Microsoft.Network/virtualNetworks/subne
   properties: {
     addressPrefix: privateEndpointSubnetPrefix
     privateEndpointNetworkPolicies: 'Disabled'
+  }
+}
+
+resource searchPrivateEndpointSubnetBootstrap 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = if (isBootstrap) {
+  parent: searchPrivateVnetBootstrap
+  name: searchPrivateEndpointSubnetName
+  properties: {
+    addressPrefix: searchPrivateEndpointSubnetPrefix
+    privateEndpointNetworkPolicies: 'Disabled'
+  }
+}
+
+resource privateToSearchVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = if (isBootstrap) {
+  parent: privateVnetBootstrap
+  name: 'to-search-private-vnet'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+    remoteVirtualNetwork: {
+      id: searchPrivateVnetBootstrap!.id
+    }
+  }
+}
+
+resource searchToPrivateVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = if (isBootstrap) {
+  parent: searchPrivateVnetBootstrap
+  name: 'to-primary-private-vnet'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+    remoteVirtualNetwork: {
+      id: privateVnetBootstrap!.id
+    }
   }
 }
 
@@ -388,6 +449,18 @@ resource privateDnsZoneVnetLinksBootstrap 'Microsoft.Network/privateDnsZones/vir
     registrationEnabled: false
   }
 }]
+
+resource searchPrivateDnsZoneVnetLinkBootstrap 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = if (isBootstrap) {
+  parent: privateDnsZoneResourcesBootstrap[3]
+  name: 'search-private-vnet-link'
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: searchPrivateVnetBootstrap!.id
+    }
+    registrationEnabled: false
+  }
+}
 
 resource foundryAccountBootstrap 'Microsoft.CognitiveServices/accounts@2025-06-01' = if (isBootstrap) {
   name: foundryAccountName
@@ -531,9 +604,9 @@ resource standardAgentCosmosBootstrap 'Microsoft.DocumentDB/databaseAccounts@202
 
 resource standardAgentSearchBootstrap 'Microsoft.Search/searchServices@2024-06-01-preview' = if (isBootstrap) {
   name: standardAgentSearchName
-  location: location
+  location: standardAgentSearchLocation
   sku: {
-    name: 'basic'
+    name: 'standard'
   }
   identity: {
     type: 'SystemAssigned'
@@ -758,7 +831,7 @@ resource privateRunnerVmBootstrap 'Microsoft.Compute/virtualMachines@2024-11-01'
   })
 }
 
-resource foundryPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
+resource foundryPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isFoundryReadyPhase) {
   name: take('${foundryAccountName}-pe', 80)
   location: location
   properties: {
@@ -826,10 +899,10 @@ resource standardAgentCosmosPrivateEndpointBootstrap 'Microsoft.Network/privateE
 
 resource standardAgentSearchPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
   name: take('${standardAgentSearchName}-search-pe', 80)
-  location: location
+  location: standardAgentSearchLocation
   properties: {
     subnet: {
-      id: privateEndpointSubnetBootstrap!.id
+      id: searchPrivateEndpointSubnetBootstrap!.id
     }
     privateLinkServiceConnections: [
       {
@@ -916,7 +989,7 @@ resource azureMonitorPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoint
   ]
 }
 
-resource foundryPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (isBootstrap) {
+resource foundryPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (isFoundryReadyPhase) {
   parent: foundryPrivateEndpointBootstrap
   name: 'foundry-dns'
   properties: {
@@ -961,6 +1034,9 @@ resource standardAgentSearchPrivateDnsZoneGroupBootstrap 'Microsoft.Network/priv
   }
   dependsOn: [
     privateDnsZoneVnetLinksBootstrap
+    searchPrivateDnsZoneVnetLinkBootstrap
+    privateToSearchVnetPeeringBootstrap
+    searchToPrivateVnetPeeringBootstrap
   ]
 }
 
@@ -1072,7 +1148,7 @@ resource azureMonitorPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndp
   ]
 }
 
-resource foundryProjectBootstrap 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = if (isBootstrap) {
+resource foundryProjectBootstrap 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = if (isFoundryReadyPhase) {
   parent: foundryAccountBootstrap
   name: foundryProjectName
   location: location
@@ -1091,7 +1167,7 @@ resource foundryProjectBootstrap 'Microsoft.CognitiveServices/accounts/projects@
   ]
 }
 
-resource projectCosmosConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isBootstrap) {
+resource projectCosmosConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
   parent: foundryProjectBootstrap
   name: 'private-cosmos'
   properties: {
@@ -1106,7 +1182,7 @@ resource projectCosmosConnectionBootstrap 'Microsoft.CognitiveServices/accounts/
   }
 }
 
-resource projectStorageConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isBootstrap) {
+resource projectStorageConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
   parent: foundryProjectBootstrap
   name: 'private-storage'
   properties: {
@@ -1121,7 +1197,7 @@ resource projectStorageConnectionBootstrap 'Microsoft.CognitiveServices/accounts
   }
 }
 
-resource projectSearchConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isBootstrap) {
+resource projectSearchConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
   parent: foundryProjectBootstrap
   name: 'private-search'
   properties: {
@@ -1131,12 +1207,12 @@ resource projectSearchConnectionBootstrap 'Microsoft.CognitiveServices/accounts/
     metadata: {
       ApiType: 'Azure'
       ResourceId: standardAgentSearchBootstrap!.id
-      location: location
+      location: standardAgentSearchLocation
     }
   }
 }
 
-resource accountApplicationInsightsConnectionBootstrap 'Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview' = if (isBootstrap) {
+resource accountApplicationInsightsConnectionBootstrap 'Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
   parent: foundryAccountBootstrap
   name: 'ApplicationInsights'
   properties: {
@@ -1304,7 +1380,7 @@ resource frontendAcrPullBootstrap 'Microsoft.Authorization/roleAssignments@2022-
   ]
 }
 
-resource projectAcrPullBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectAcrPullBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(containerRegistryRoleScope.id, foundryProjectName, acrPullRole.id)
   scope: containerRegistryRoleScope
   properties: {
@@ -1317,7 +1393,7 @@ resource projectAcrPullBootstrap 'Microsoft.Authorization/roleAssignments@2022-0
   ]
 }
 
-resource projectAcrRepositoryReaderBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectAcrRepositoryReaderBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(containerRegistryRoleScope.id, foundryProjectName, acrRepositoryReaderRole.id)
   scope: containerRegistryRoleScope
   properties: {
@@ -1393,7 +1469,7 @@ resource privateRunnerFrontendIdentityOperatorBootstrap 'Microsoft.Authorization
   }
 }
 
-resource privateRunnerFoundryProjectManagerBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource privateRunnerFoundryProjectManagerBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(foundryProjectRoleScope.id, privateRunnerVmName, foundryProjectManagerRole.id)
   scope: foundryProjectRoleScope
   properties: {
@@ -1419,7 +1495,7 @@ resource privateRunnerLogAnalyticsReaderBootstrap 'Microsoft.Authorization/roleA
   ]
 }
 
-resource projectOpenAIUserBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectOpenAIUserBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(foundryAccountRoleScope.id, foundryProjectName, cognitiveServicesOpenAIUserRole.id)
   scope: foundryAccountRoleScope
   properties: {
@@ -1429,7 +1505,7 @@ resource projectOpenAIUserBootstrap 'Microsoft.Authorization/roleAssignments@202
   }
 }
 
-resource backendFoundryUserBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource backendFoundryUserBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(foundryProjectRoleScope.id, privateBackendManagedIdentityName, foundryUserRole.id)
   scope: foundryProjectRoleScope
   properties: {
@@ -1442,7 +1518,7 @@ resource backendFoundryUserBootstrap 'Microsoft.Authorization/roleAssignments@20
   ]
 }
 
-resource projectStorageAccountContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectStorageAccountContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(standardAgentStorageRoleScope.id, foundryProjectName, storageAccountContributorRole.id)
   scope: standardAgentStorageRoleScope
   properties: {
@@ -1455,7 +1531,7 @@ resource projectStorageAccountContributorBootstrap 'Microsoft.Authorization/role
   ]
 }
 
-resource projectCosmosOperatorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectCosmosOperatorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(standardAgentCosmosRoleScope.id, foundryProjectName, cosmosDbOperatorRole.id)
   scope: standardAgentCosmosRoleScope
   properties: {
@@ -1468,7 +1544,7 @@ resource projectCosmosOperatorBootstrap 'Microsoft.Authorization/roleAssignments
   ]
 }
 
-resource projectSearchIndexDataContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectSearchIndexDataContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(standardAgentSearchRoleScope.id, foundryProjectName, searchIndexDataContributorRole.id)
   scope: standardAgentSearchRoleScope
   properties: {
@@ -1481,7 +1557,7 @@ resource projectSearchIndexDataContributorBootstrap 'Microsoft.Authorization/rol
   ]
 }
 
-resource projectSearchServiceContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectSearchServiceContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(standardAgentSearchRoleScope.id, foundryProjectName, searchServiceContributorRole.id)
   scope: standardAgentSearchRoleScope
   properties: {
@@ -1494,7 +1570,7 @@ resource projectSearchServiceContributorBootstrap 'Microsoft.Authorization/roleA
   ]
 }
 
-resource projectLogAnalyticsReaderBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+resource projectLogAnalyticsReaderBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(logAnalyticsWorkspaceRoleScope.id, foundryProjectName, logAnalyticsReaderRole.id)
   scope: logAnalyticsWorkspaceRoleScope
   properties: {
@@ -1509,7 +1585,7 @@ resource projectLogAnalyticsReaderBootstrap 'Microsoft.Authorization/roleAssignm
 
 // The platform creates this account host from networkInjections. Creating another
 // account capability host races the platform and can leave a subnet association behind.
-resource projectCapabilityHostBootstrap 'Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-06-01' = if (isBootstrap) {
+resource projectCapabilityHostBootstrap 'Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-06-01' = if (isFoundryReadyPhase) {
   parent: foundryProjectBootstrap
   name: projectCapabilityHostName
   properties: {
@@ -1537,7 +1613,7 @@ resource projectCapabilityHostBootstrap 'Microsoft.CognitiveServices/accounts/pr
 var projectWorkspaceId = foundryProjectBootstrap!.properties.internalId
 var projectWorkspaceIdGuid = '${substring(projectWorkspaceId, 0, 8)}-${substring(projectWorkspaceId, 8, 4)}-${substring(projectWorkspaceId, 12, 4)}-${substring(projectWorkspaceId, 16, 4)}-${substring(projectWorkspaceId, 20, 12)}'
 
-module standardAgentDataRoleAssignmentsBootstrap 'modules/standard-agent-data-role-assignments.bicep' = if (isBootstrap) {
+module standardAgentDataRoleAssignmentsBootstrap 'modules/standard-agent-data-role-assignments.bicep' = if (isFoundryReadyPhase) {
   name: 'standard-agent-data-roles-${uniqueString(resourceGroup().id, foundryProjectName)}'
   params: {
     storageAccountName: standardAgentStorageAccountName

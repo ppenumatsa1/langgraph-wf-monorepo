@@ -15,7 +15,8 @@ deployment success.
 
 ### 1. Isolated BYO VNet
 
-The lane uses one isolated BYO VNet with address space `10.74.0.0/16`.
+The lane uses a primary isolated BYO VNet with address space `10.74.0.0/16`
+plus a small `westus3` VNet globally peered for the Search private endpoint.
 Reserved subnets are:
 
 | Reservation | CIDR | Purpose |
@@ -24,6 +25,7 @@ Reserved subnets are:
 | Container Apps | `10.74.2.0/23` | External frontend and internal wrapper |
 | Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and approved services |
 | Private runner | `10.74.5.0/27` | Noninteractive validation and approved mutation |
+| Search private endpoint | `10.75.0.0/27` | Same-region endpoint for the `westus3` Search service |
 
 Private DNS zones/links and endpoint approval are mandatory. Overlapping
 address spaces, unresolved private names, or missing endpoint approval are
@@ -238,6 +240,32 @@ bootstrap, and excludes generated pytest scratch content.
   minimum. The isolated single-project lane therefore uses Basic rather than
   changing region, reusing another lane's Search resource, weakening private
   access, or scaling to a substantially more expensive tier.
+
+### Third provisioning attempt and documented region constraint
+
+- Basic also failed with `InsufficientResourcesAvailable`, proving the failure
+  was regional rather than S1-specific.
+- Current Microsoft Learn region guidance explicitly marks `eastus2` as
+  capacity constrained for creation of all new Azure AI Search services and
+  scaling operations and instructs customers to choose another region.
+- The lane restores the official Standard Agent Setup S1 tier and places the
+  lane-owned Search service in unconstrained `westus3`. Foundry, models, the
+  primary VNet, non-Search private endpoints, PostgreSQL, ACR, Container Apps,
+  runner, and monitoring remain in `eastus2`.
+- Azure AI Search private-endpoint guidance requires Search, the endpoint VNet,
+  and a test client topology in a common region. The Search private endpoint
+  therefore uses a small `westus3` VNet globally peered to the primary
+  `eastus2` VNet. The Search private DNS zone links both VNets, preserving a
+  private-only route from Foundry, the wrapper, and the runner.
+- Repeated monolithic deployments also showed that ARM could complete the
+  Foundry account resource while the service still reported `Accepted`,
+  allowing the Foundry private endpoint to race and fail with
+  `AccountProvisioningStateInvalid`.
+- Provisioning is now split into two idempotent, fail-closed phases. Phase one
+  converges the account and account capability host; a bounded automatic poll
+  requires both to report `Succeeded`; phase two independently previews and
+  creates the Foundry endpoint, project, connections, RBAC, and project
+  capability host. This removes both blind retries and human approval flags.
 
 ## Open implementation follow-through
 

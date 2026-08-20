@@ -28,7 +28,8 @@ the required observability backend; LangSmith is not required.
 
 ## Network policy
 
-The hosted lane uses one isolated BYO VNet:
+The hosted lane uses an isolated primary BYO VNet plus a small globally peered
+Search private-endpoint VNet:
 
 | Reservation | CIDR | Policy |
 | --- | --- | --- |
@@ -37,6 +38,7 @@ The hosted lane uses one isolated BYO VNet:
 | Container Apps | `10.74.2.0/23` | External frontend and internal wrapper |
 | Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and approved services |
 | Private runner | `10.74.5.0/27` | Noninteractive automation |
+| Search private endpoint | `10.75.0.0/27` | Same-region private endpoint for the `westus3` Search service |
 
 Only the frontend has external ingress. The wrapper, Foundry, PostgreSQL, ACR,
 and runner are private. Private DNS zones/links, endpoint approval, managed
