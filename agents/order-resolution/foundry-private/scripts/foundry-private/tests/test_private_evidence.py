@@ -68,6 +68,7 @@ def test_private_release_evidence_requires_private_profile_lane(tmp_path: Path) 
     assert record["lane"] == "order-resolution-foundry-private"
     assert "browser_e2e" in record["gates"]
     assert "release_gates" in record["gates"]
+    assert "runner_bootstrap" in release_evidence.TIMING_STAGES
 
     profile.write_text(profile_text(DEPLOYMENT_LANE="foundry-public"), encoding="utf-8")
     with pytest.raises(ValueError, match="DEPLOYMENT_LANE"):

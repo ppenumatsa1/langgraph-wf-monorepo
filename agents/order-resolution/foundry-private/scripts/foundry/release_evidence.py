@@ -29,6 +29,7 @@ REQUIRED_GATES = {
 TIMING_STAGES = (
     "app_only",
     "local_gates",
+    "runner_bootstrap",
     "runner_preflight",
     "private_readiness",
     "package_build",
@@ -285,7 +286,8 @@ def validate_release_timing(record: dict[str, Any]) -> None:
         ):
             raise ValueError(f"Release timing stage is outside app_only: {stage}")
     ordered_after = (
-        ("local_gates", "runner_preflight"),
+        ("local_gates", "runner_bootstrap"),
+        ("runner_bootstrap", "runner_preflight"),
         ("runner_preflight", "private_readiness"),
         ("private_readiness", "package_build"),
         ("package_build", "backend_deployment"),

@@ -338,6 +338,10 @@ bootstrap, and excludes generated pytest scratch content.
   reached ARM and exposed a 65-character deployment name. The connection
   deployment now derives its release suffix from the exact remaining
   `64 - prefix length` budget instead of a fixed slice.
+- The first full release reran all local gates successfully but stopped before
+  packaging because `release.sh` records `runner_bootstrap` while the evidence
+  timing schema omitted that stage. The stage is now part of the authoritative
+  timing order between `local_gates` and `runner_preflight`.
 
 ## Open implementation follow-through
 
