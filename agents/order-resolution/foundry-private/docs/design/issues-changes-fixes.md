@@ -381,6 +381,12 @@ bootstrap, and excludes generated pytest scratch content.
 - The first successful private activation took slightly longer than the
   original ten-minute poll. The hosted deployment remains bounded but now
   allows up to twenty minutes before timing out.
+- A subsequent release attempted to create a fifth version even though an
+  active version already matched the exact hosted digest and runtime
+  definition; the service returned its generic retryable provisioning error.
+  Hosted deployment now reuses an active version only when immutable image,
+  environment, CPU, memory, and instance identity all match. A changed runtime
+  definition still creates and waits for a new version.
 
 ## Open implementation follow-through
 

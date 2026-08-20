@@ -34,6 +34,40 @@ def read_value(value: object, name: str) -> object | None:
     return getattr(value, name, None)
 
 
+def version_identity(version: object) -> str:
+    identity = read_value(version, "instance_identity")
+    principal_id = read_value(identity, "principal_id") if identity is not None else None
+    return str(principal_id or "")
+
+
+def matching_active_version(
+    project: AIProjectClient,
+    agent_name: str,
+    expected: HostedAgentDefinition,
+) -> object | None:
+    expected_environment = read_value(expected, "environment_variables")
+    expected_container = read_value(expected, "container_configuration")
+    expected_image = read_value(expected_container, "image")
+    for summary in project.agents.list_versions(agent_name):
+        version = project.agents.get_version(
+            agent_name=agent_name,
+            agent_version=str(read_value(summary, "version") or ""),
+        )
+        if str(read_value(version, "status") or "").lower() != "active":
+            continue
+        definition = read_value(version, "definition")
+        container = read_value(definition, "container_configuration")
+        if (
+            read_value(container, "image") == expected_image
+            and read_value(definition, "environment_variables") == expected_environment
+            and read_value(definition, "cpu") == read_value(expected, "cpu")
+            and read_value(definition, "memory") == read_value(expected, "memory")
+            and version_identity(version)
+        ):
+            return version
+    return None
+
+
 def build_definition() -> HostedAgentDefinition:
     placeholder = runtime_connection_placeholder(require("FOUNDRY_RUNTIME_CONNECTION_NAME"))
     return HostedAgentDefinition(
@@ -63,12 +97,18 @@ def main() -> None:
     endpoint = require("FOUNDRY_PROJECT_ENDPOINT")
     agent_name = require("FOUNDRY_HOSTED_AGENT_NAME")
     image = require("FOUNDRY_IMAGE")
+    definition = build_definition()
 
     with AIProjectClient(endpoint=endpoint, credential=DefaultAzureCredential()) as project:
+        existing = matching_active_version(project, agent_name, definition)
+        if existing is not None:
+            print(f"HOSTED_AGENT_VERSION={read_value(existing, 'version')}")
+            print(f"HOSTED_AGENT_PRINCIPAL_ID={version_identity(existing)}")
+            return
         created = project.agents.create_version(
             agent_name=agent_name,
             description="Order Resolution private LangGraph hosted workflow agent.",
-            definition=build_definition(),
+            definition=definition,
         )
         for _ in range(120):
             version = project.agents.get_version(
@@ -76,12 +116,7 @@ def main() -> None:
             )
             status = str(read_value(version, "status") or "").lower()
             if status == "active":
-                identity = read_value(version, "instance_identity")
-                principal_id = (
-                    identity.get("principal_id")
-                    if isinstance(identity, dict)
-                    else getattr(identity, "principal_id", "")
-                )
+                principal_id = version_identity(version)
                 if principal_id:
                     print(f"HOSTED_AGENT_VERSION={created.version}")
                     print(f"HOSTED_AGENT_PRINCIPAL_ID={principal_id}")
