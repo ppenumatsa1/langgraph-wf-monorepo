@@ -1371,6 +1371,29 @@ resource containerRegistryRoleScope 'Microsoft.ContainerRegistry/registries@2025
   name: containerRegistryName
 }
 
+resource privateRunnerAcrRoleAssignerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = if (isBootstrap) {
+  name: '6eae6c86-0504-4a59-87d4-d4d6edecad87'
+  properties: {
+    roleName: 'Order Resolution Private ACR Pull Assigner'
+    description: 'Allows the private runner to grant the per-version Foundry identity registry pull access.'
+    type: 'CustomRole'
+    permissions: [
+      {
+        actions: [
+          'Microsoft.Authorization/roleAssignments/read'
+          'Microsoft.Authorization/roleAssignments/write'
+        ]
+        notActions: []
+        dataActions: []
+        notDataActions: []
+      }
+    ]
+    assignableScopes: [
+      resourceGroup().id
+    ]
+  }
+}
+
 resource foundryAccountRoleScope 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
   name: foundryAccountName
 }
@@ -1453,6 +1476,19 @@ resource privateRunnerAcrPushBootstrap 'Microsoft.Authorization/roleAssignments@
   scope: containerRegistryRoleScope
   properties: {
     roleDefinitionId: acrPushRole.id
+    principalId: privateRunnerVmBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+  dependsOn: [
+    containerRegistryBootstrap
+  ]
+}
+
+resource privateRunnerAcrRoleAssignerBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
+  name: guid(containerRegistryRoleScope.id, privateRunnerVmName, privateRunnerAcrRoleAssignerRole.id)
+  scope: containerRegistryRoleScope
+  properties: {
+    roleDefinitionId: privateRunnerAcrRoleAssignerRole.id
     principalId: privateRunnerVmBootstrap!.identity.principalId
     principalType: 'ServicePrincipal'
   }

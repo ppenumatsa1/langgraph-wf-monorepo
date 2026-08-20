@@ -55,6 +55,8 @@ grep -Fq "category: 'ContainerRegistry'" "$template" ||
   private_die "private Foundry project requires a managed-identity ACR connection"
 grep -Fq "projectContainerRegistryConnectionBootstrap" "$template" ||
   private_die "private Foundry project ACR connection must be deployment ordered"
+grep -Fq "Order Resolution Private ACR Pull Assigner" "$template" ||
+  private_die "private runner must grant per-version Foundry identities only registry-scoped RBAC"
 grep -Fq "param standardAgentSearchLocation string = 'westus3'" "$template" ||
   private_die "private Search must avoid the documented East US 2 capacity constraint"
 grep -Fq "location: standardAgentSearchLocation" "$template" ||

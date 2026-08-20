@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import re
+import subprocess
 import sys
 import time
 from collections.abc import Mapping
@@ -34,10 +35,72 @@ def read_value(value: object, name: str) -> object | None:
     return getattr(value, name, None)
 
 
+def status_value(version: object) -> str:
+    status = read_value(version, "status")
+    return str(read_value(status, "value") or status or "").lower()
+
+
 def version_identity(version: object) -> str:
     identity = read_value(version, "instance_identity")
     principal_id = read_value(identity, "principal_id") if identity is not None else None
     return str(principal_id or "")
+
+
+def ensure_acr_pull(principal_id: str) -> None:
+    subscription_id = require("AZURE_SUBSCRIPTION_ID")
+    registry_id = require("FOUNDRY_ACR_RESOURCE_ID")
+    create = [
+        "az",
+        "role",
+        "assignment",
+        "create",
+        "--subscription",
+        subscription_id,
+        "--assignee-object-id",
+        principal_id,
+        "--assignee-principal-type",
+        "ServicePrincipal",
+        "--role",
+        "AcrPull",
+        "--scope",
+        registry_id,
+        "--output",
+        "none",
+    ]
+    for _ in range(18):
+        result = subprocess.run(create, capture_output=True, check=False, text=True)
+        if result.returncode == 0 or "RoleAssignmentExists" in result.stderr:
+            break
+        if "PrincipalNotFound" not in result.stderr:
+            raise RuntimeError("Unable to grant the hosted identity private ACR pull access.")
+        time.sleep(10)
+    else:
+        raise RuntimeError("Hosted identity did not propagate for private ACR pull access.")
+
+    verify = [
+        "az",
+        "role",
+        "assignment",
+        "list",
+        "--subscription",
+        subscription_id,
+        "--assignee-object-id",
+        principal_id,
+        "--role",
+        "AcrPull",
+        "--scope",
+        registry_id,
+        "--query",
+        "length(@)",
+        "--output",
+        "tsv",
+    ]
+    for _ in range(18):
+        result = subprocess.run(verify, capture_output=True, check=False, text=True)
+        if result.returncode == 0 and result.stdout.strip() != "0":
+            return
+        time.sleep(10)
+    raise RuntimeError("Hosted identity ACR pull assignment did not propagate.")
 
 
 def matching_active_version(
@@ -53,7 +116,7 @@ def matching_active_version(
             agent_name=agent_name,
             agent_version=str(read_value(summary, "version") or ""),
         )
-        if str(read_value(version, "status") or "").lower() != "active":
+        if status_value(version) != "active":
             continue
         definition = read_value(version, "definition")
         container = read_value(definition, "container_configuration")
@@ -110,11 +173,15 @@ def main() -> None:
             description="Order Resolution private LangGraph hosted workflow agent.",
             definition=definition,
         )
+        principal_id = version_identity(created)
+        if not principal_id:
+            raise RuntimeError("Private hosted agent version did not expose an instance identity.")
+        ensure_acr_pull(principal_id)
         for _ in range(120):
             version = project.agents.get_version(
                 agent_name=agent_name, agent_version=created.version
             )
-            status = str(read_value(version, "status") or "").lower()
+            status = status_value(version)
             if status == "active":
                 principal_id = version_identity(version)
                 if principal_id:

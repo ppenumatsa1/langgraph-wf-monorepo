@@ -387,6 +387,14 @@ bootstrap, and excludes generated pytest scratch content.
   Hosted deployment now reuses an active version only when immutable image,
   environment, CPU, memory, and instance identity all match. A changed runtime
   definition still creates and waits for a new version.
+- Full SDK reads then proved the version-list summary incorrectly reported
+  failed versions as active; deployment now normalizes the SDK status enum and
+  trusts full version details. The definitive provisioning gap was per-version
+  identity RBAC: direct SDK creation bypassed `azd deploy`'s automatic
+  `AcrPull` assignment. The runner now grants only `AcrPull` at the ACR scope
+  immediately after version creation, verifies propagation, and only then
+  polls activation. Its custom role permits role-assignment read/write only at
+  that registry assignment scope.
 
 ## Open implementation follow-through
 
