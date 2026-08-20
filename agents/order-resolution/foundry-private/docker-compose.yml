@@ -1,0 +1,106 @@
+name: order-resolution-foundry-private
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: langgraph_workflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d langgraph_workflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  postgres-bootstrap:
+    build:
+      context: ./backend
+    command: python -m app.sql.bootstrap
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      APP_ENV: local-bootstrap
+      DEPLOYMENT_LANE: foundry-private
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/langgraph_workflow
+
+  mock-mcp:
+    build:
+      context: ./backend
+    command: uvicorn scripts.mcp.mock_mcp_server:app --host 0.0.0.0 --port 8011
+    environment:
+      MOCK_MCP_API_KEY: demo-api-key
+      MOCK_MCP_BEARER_TOKEN: demo-bearer-token
+    ports:
+      - "${MOCK_MCP_HOST_PORT:-8011}:8011"
+    volumes:
+      - ./:/app
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres-bootstrap:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      mock-mcp:
+        condition: service_started
+    ports:
+      - "${BACKEND_HOST_PORT:-8000}:8000"
+    environment:
+      APP_ENV: local
+      DEPLOYMENT_LANE: foundry-private
+      OTEL_SERVICE_NAME: langgraph-order-resolution-foundry-private-backend
+      RUNTIME_TARGET: ${RUNTIME_TARGET:-local_langgraph}
+      DB_SCHEMA_MANAGED_EXTERNALLY: "true"
+      VERIFY_DB_SCHEMA_ON_STARTUP: "true"
+      FRONTEND_ORIGIN: http://localhost:${FRONTEND_HOST_PORT:-5173}
+      LANGSMITH_TRACING: "false"
+      LANGCHAIN_TRACING_V2: "false"
+      APPLICATIONINSIGHTS_CONNECTION_STRING: ${APPLICATIONINSIGHTS_CONNECTION_STRING:-}
+      FOUNDRY_RESPONSES_ENDPOINT: ${FOUNDRY_RESPONSES_ENDPOINT:-}
+      FOUNDRY_RESPONSES_TIMEOUT_SECONDS: ${FOUNDRY_RESPONSES_TIMEOUT_SECONDS:-60}
+      AZURE_TOKEN_CREDENTIALS: ${AZURE_TOKEN_CREDENTIALS:-dev}
+      FOUNDRY_PROJECTS_ENDPOINT: ${FOUNDRY_PROJECTS_ENDPOINT:-}
+      FOUNDRY_MODEL_DEPLOYMENT_NAME: ${FOUNDRY_MODEL_DEPLOYMENT_NAME:-}
+      MCP_SERVER_URL: http://mock-mcp:8011/mcp
+      MCP_API_KEY: demo-api-key
+      MCP_BEARER_TOKEN: demo-bearer-token
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/langgraph_workflow
+    volumes:
+      - ./backend/.foundry:/app/.foundry
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_HOST_PORT:-5173}:5173"
+    environment:
+      NGINX_API_UPSTREAM: http://backend:8000
+
+  playwright:
+    image: mcr.microsoft.com/playwright:v1.55.0-jammy
+    profiles: ["test"]
+    depends_on:
+      - backend
+      - frontend
+    working_dir: /workspace/scripts/playwright
+    environment:
+      PLAYWRIGHT_BASE_URL: http://frontend:5173
+      PLAYWRIGHT_ARTIFACTS_DIR: /workspace/backend/.tmp/playwright-artifacts
+    volumes:
+      - ./:/workspace
+    command: bash -lc "npm install && npx playwright install --with-deps && npm run test:e2e"
+
+volumes:
+  postgres-data:

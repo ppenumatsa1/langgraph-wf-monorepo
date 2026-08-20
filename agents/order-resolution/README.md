@@ -1,13 +1,14 @@
 # Order Resolution
 
-The current order-resolution implementation is the public Microsoft Foundry
-lane:
+Order Resolution has two documented LangGraph lanes:
 
-- [foundry-public](foundry-public/README.md)
+- [foundry-public](foundry-public/README.md) - the accepted public Foundry
+  baseline.
+- [foundry-private](foundry-private/README.md) - the isolated BYO VNet target
+  with private Foundry, PostgreSQL, ACR, and runner services.
 
-It contains the complete development and release lifecycle: local React,
-FastAPI, PostgreSQL, LangGraph workflow execution, durable human approval,
-Docker packaging, Foundry hosted-agent deployment, infrastructure as code,
-smoke and end-to-end tests, evaluations, and Application Insights telemetry.
-
-Additional deployment variants are intentionally deferred.
+The private lane preserves the shared LangGraph workflow, FastAPI/SSE contract,
+durable PostgreSQL checkpoints, redacted AG-UI/CopilotKit projections,
+Application Insights observability, and business HITL. Its deployment
+automation is noninteractive and fail-closed. The private lane documentation
+does not claim live Azure provisioning or release success.

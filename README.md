@@ -8,7 +8,7 @@ evaluation, and telemetry lifecycle self-contained.
 
 | Agent | Deployment variant | Start here |
 | --- | --- | --- |
-| Order resolution | Public Microsoft Foundry hosted agent with React/FastAPI wrapper | [Order-resolution lane](agents/order-resolution/README.md) |
+| Order resolution | Public Microsoft Foundry, private-VNet Microsoft Foundry, and Azure Container Apps variants | [Order-resolution lanes](agents/order-resolution/README.md) |
 | Underwriting | Public Microsoft Foundry hosted LangGraph workflow with React/FastAPI wrapper | [Underwriting lane](agents/underwriting/foundry-public/README.md) |
 
 Order Resolution and Underwriting are independently deployable lanes. Future

@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+source "$SCRIPT_DIR/common.sh"
+
+template="$PRIVATE_AZD_DIR/iac/main.bicep"
+private_require_command az
+private_require_file "$template"
+
+az bicep build --file "$template" --stdout >/dev/null
+
+required_patterns=(
+  "Microsoft.Compute/virtualMachines"
+  "Microsoft.Network/privateEndpoints"
+  "Microsoft.CognitiveServices/accounts/projects/capabilityHosts"
+  "publicNetworkAccess: 'Disabled'"
+  "PRIVATE_RUNNER_VM_NAME"
+)
+for pattern in "${required_patterns[@]}"; do
+  grep -Fq "$pattern" "$template" ||
+    private_die "private infrastructure contract is incomplete: missing $pattern in $template"
+done
+
+for prohibited_pattern in \
+  "publicNetworkAccess: 'Enabled'" \
+  "publicNetworkAccessForIngestion: 'Enabled'" \
+  "publicNetworkAccessForQuery: 'Enabled'" \
+  "allow-all-temporary" \
+  "startIpAddress: '0.0.0.0'" \
+  "POSTGRES_OPERATOR_IP" \
+  "publicIPAddress:"; do
+  if grep -Fq "$prohibited_pattern" "$template"; then
+    private_die "private infrastructure contract forbids $prohibited_pattern in $template"
+  fi
+done
+
+grep -Fq "resource backendContainerAppBootstrap" "$template" ||
+  private_die "private infrastructure contract is missing the backend Container App"
+grep -Fq "resource frontendContainerAppBootstrap" "$template" ||
+  private_die "private infrastructure contract is missing the frontend Container App"
+grep -Fq "external: false" "$template" ||
+  private_die "private infrastructure contract requires internal backend ingress"
+grep -Fq "external: true" "$template" ||
+  private_die "private infrastructure contract requires the intended frontend-only ingress"
+grep -Fq "purpose: 'runner-egress-only'" "$template" ||
+  private_die "private runner requires explicit outbound-only NAT"
+grep -Fq "targetPort: 8000" "$template" ||
+  private_die "private backend ingress must target port 8000"
+grep -Fq "targetPort: 5173" "$template" ||
+  private_die "private frontend ingress must target port 5173"
+
+echo "Private Bicep contract passed."

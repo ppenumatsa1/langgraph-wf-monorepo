@@ -1,0 +1,12 @@
+version: 1
+deploymentLane: foundry-private
+networkAccess: private
+runtime: langgraph
+protocol: responses-2.0
+checkpointing: async-postgres
+interruptReconciliation: graph-authoritative
+maxUnresolvedInterruptsPerThread: 1
+defaultEnvironment: foundry-private
+environments:
+  foundry-private:
+    evaluationSuites: []

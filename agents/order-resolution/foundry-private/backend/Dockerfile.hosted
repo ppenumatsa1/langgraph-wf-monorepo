@@ -1,0 +1,37 @@
+FROM python:3.13-slim
+
+LABEL org.opencontainers.image.title="order-resolution-foundry-private-hosted" \
+    org.opencontainers.image.description="Private Foundry Responses host for the Order Resolution LangGraph workflow" \
+    com.microsoft.langgraph.deployment-lane="foundry-private" \
+    com.microsoft.langgraph.runtime="foundry-responses-host"
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    APP_ENV=foundry-private-hosted \
+    DEPLOYMENT_LANE=foundry-private \
+    RUNTIME_TARGET=local_langgraph \
+    DB_SCHEMA_MANAGED_EXTERNALLY=true \
+    VERIFY_DB_SCHEMA_ON_STARTUP=true \
+    LANGSMITH_TRACING=false \
+    LANGCHAIN_TRACING_V2=false \
+    AZURE_TOKEN_CREDENTIALS=prod \
+    OTEL_SERVICE_NAME=langgraph-order-resolution-foundry-private-hosted \
+    LANGGRAPH_STRICT_MSGPACK=true \
+    PIP_INDEX_URL=https://packagefeedproxy.microsoft.io/pypi/simple
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+RUN adduser --disabled-password --gecos "" appuser
+
+COPY --chown=appuser:appuser . .
+RUN mkdir -p /app/.foundry/results \
+    && chown -R appuser:appuser /app/.foundry
+
+USER appuser
+
+EXPOSE 8088
+
+CMD ["python", "-m", "foundry.main"]
