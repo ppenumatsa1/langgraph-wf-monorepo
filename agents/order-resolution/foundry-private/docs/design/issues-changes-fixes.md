@@ -426,11 +426,14 @@ bootstrap, and excludes generated pytest scratch content.
   service-side capability-host integration rather than application code,
   container readiness, ACR access, or PostgreSQL.
 - Microsoft's current private template declares `disableLocalAuth: false`,
-  while this subscription enforces or normalizes the live account to `true`.
-  PATCH and full PUT tests through both `2025-06-01` and
-  `2025-04-01-preview` completed successfully but retained `true`. Public
-  network access remained disabled throughout. This compatibility difference
-  is included in the platform-support evidence rather than weakened locally.
+  while the live account remains `true`. PATCH and full PUT tests through both
+  `2025-06-01` and `2025-04-01-preview` completed successfully but retained
+  `true`. Azure Policy state identified the cause: the inherited
+  `MCAPSGovDeployPolicies` initiative applies the
+  `cognitiveservicesdisablelocalauth` reference with a `Modify` effect. A
+  narrow, resource-scoped policy exemption is required before this
+  compatibility hypothesis can be tested. Public network access remains
+  disabled and no exemption has been created without governance authorization.
 - The sanitized reproduction and support handoff are tracked in repository
   issue
   [#1](https://github.com/ppenumatsa1/langgraph-wf-monorepo/issues/1).

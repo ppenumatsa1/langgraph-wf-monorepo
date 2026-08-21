@@ -133,6 +133,14 @@ repeated pulls of its exact digest by the project identity from private
 `10.74.0.x` addresses. This rules out production-image inheritance and stable
 SDK-version drift.
 
+Azure Policy state now explains why `disableLocalAuth` could not be aligned
+with the Microsoft template: the inherited `MCAPSGovDeployPolicies` initiative
+applies the `cognitiveservicesdisablelocalauth` reference with a `Modify`
+effect. The next controlled diagnostic requires a temporary, resource-scoped
+exemption for only the Foundry account, followed by one official-control
+activation attempt with public network access still disabled. No exemption has
+been created without explicit governance authorization.
+
 The source now preserves the official Storage role contract, removes the
 unnecessary per-version ACR role-assignment capability, and classifies hosted
 and wrapper execution as `foundry-private-*`. A fresh full release must not run
