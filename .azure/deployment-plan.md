@@ -141,6 +141,14 @@ exemption for only the Foundry account, followed by one official-control
 activation attempt with public network access still disabled. No exemption has
 been created without explicit governance authorization.
 
+The current Subscription Owner cannot create that exemption: Azure returned
+`LinkedAuthorizationFailed` because the identity lacks
+`Microsoft.Authorization/policyAssignments/exempt/action` on the inherited
+management-group assignment. No eligible or active management-group PIM role
+is available to activate. A management-group policy administrator must create
+the scoped exemption or grant the required action before deployment can
+continue.
+
 The source now preserves the official Storage role contract, removes the
 unnecessary per-version ACR role-assignment capability, and classifies hosted
 and wrapper execution as `foundry-private-*`. A fresh full release must not run

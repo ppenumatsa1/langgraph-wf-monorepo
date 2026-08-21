@@ -434,6 +434,12 @@ bootstrap, and excludes generated pytest scratch content.
   narrow, resource-scoped policy exemption is required before this
   compatibility hypothesis can be tested. Public network access remains
   disabled and no exemption has been created without governance authorization.
+  The signed-in identity is Subscription Owner and can write the exemption at
+  the account scope, but Azure rejected creation because it lacks
+  `Microsoft.Authorization/policyAssignments/exempt/action` on the inherited
+  management-group assignment. No eligible or active PIM assignment exists at
+  that management group. A management-group policy administrator must either
+  create the scoped exemption or temporarily grant the required action.
 - The sanitized reproduction and support handoff are tracked in repository
   issue
   [#1](https://github.com/ppenumatsa1/langgraph-wf-monorepo/issues/1).
