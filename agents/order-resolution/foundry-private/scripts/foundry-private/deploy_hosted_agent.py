@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import re
-import subprocess
 import sys
 import time
 from collections.abc import Mapping
@@ -46,64 +45,6 @@ def version_identity(version: object) -> str:
     return str(principal_id or "")
 
 
-def ensure_acr_pull(principal_id: str) -> None:
-    subscription_id = require("AZURE_SUBSCRIPTION_ID")
-    registry_id = require("FOUNDRY_ACR_RESOURCE_ID")
-    create = [
-        "az",
-        "role",
-        "assignment",
-        "create",
-        "--subscription",
-        subscription_id,
-        "--assignee-object-id",
-        principal_id,
-        "--assignee-principal-type",
-        "ServicePrincipal",
-        "--role",
-        "AcrPull",
-        "--scope",
-        registry_id,
-        "--output",
-        "none",
-    ]
-    for _ in range(18):
-        result = subprocess.run(create, capture_output=True, check=False, text=True)
-        if result.returncode == 0 or "RoleAssignmentExists" in result.stderr:
-            break
-        retryable = ("PrincipalNotFound", "AuthorizationFailed", "DeniedWithNoValidRBAC")
-        if not any(code in result.stderr for code in retryable):
-            raise RuntimeError("Unable to grant the hosted identity private ACR pull access.")
-        time.sleep(10)
-    else:
-        raise RuntimeError("Hosted identity did not propagate for private ACR pull access.")
-
-    verify = [
-        "az",
-        "role",
-        "assignment",
-        "list",
-        "--subscription",
-        subscription_id,
-        "--assignee-object-id",
-        principal_id,
-        "--role",
-        "AcrPull",
-        "--scope",
-        registry_id,
-        "--query",
-        "length(@)",
-        "--output",
-        "tsv",
-    ]
-    for _ in range(18):
-        result = subprocess.run(verify, capture_output=True, check=False, text=True)
-        if result.returncode == 0 and result.stdout.strip() != "0":
-            return
-        time.sleep(10)
-    raise RuntimeError("Hosted identity ACR pull assignment did not propagate.")
-
-
 def matching_active_version(
     project: AIProjectClient,
     agent_name: str,
@@ -142,7 +83,7 @@ def build_definition() -> HostedAgentDefinition:
             "AZURE_AI_MODEL_DEPLOYMENT_NAME": require("FOUNDRY_MODEL_DEPLOYMENT_NAME"),
             "DATABASE_URL": placeholder,
             "RUNTIME_DATABASE_URL": placeholder,
-            "APP_ENV": "aca-private",
+            "APP_ENV": "foundry-private-hosted",
             "STORE_PROVIDER": "postgres",
             "DB_SCHEMA_MANAGED_EXTERNALLY": "true",
             "ENABLE_TELEMETRY": "true",
@@ -177,7 +118,6 @@ def main() -> None:
         principal_id = version_identity(created)
         if not principal_id:
             raise RuntimeError("Private hosted agent version did not expose an instance identity.")
-        ensure_acr_pull(principal_id)
         for _ in range(120):
             version = project.agents.get_version(
                 agent_name=agent_name, agent_version=created.version

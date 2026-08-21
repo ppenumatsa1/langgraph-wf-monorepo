@@ -22,7 +22,6 @@ resource_group="$(private_azd_value AZURE_RESOURCE_GROUP)"
 backend_name="$(private_required_env_value BACKEND_CONTAINER_APP_NAME)"
 frontend_name="$(private_required_env_value FRONTEND_CONTAINER_APP_NAME)"
 backend_identity="$(private_required_env_value PRIVATE_BACKEND_MANAGED_IDENTITY_NAME)"
-registry_name="$(private_required_env_value AZURE_CONTAINER_REGISTRY_NAME)"
 project_endpoint="$(private_required_env_value AZURE_AI_PROJECT_ENDPOINT)"
 agent_name="$(private_required_env_value HOSTED_AGENT_NAME)"
 model_name="$(private_required_env_value FOUNDRY_MODEL_DEPLOYMENT_NAME)"
@@ -67,7 +66,7 @@ case "$stage" in
       --name "$backend_name" \
       --image "$backend_image" \
       --set-env-vars \
-        "APP_ENV=aca-private" \
+        "APP_ENV=foundry-private-wrapper" \
         "STORE_PROVIDER=postgres" \
         "RUNTIME_TARGET=responses_wrapper" \
         "DATABASE_URL=secretref:database-url" \
@@ -102,11 +101,7 @@ case "$stage" in
       '{component:"frontend",image:$image,immutable_digest:true,public_access_opened:false}'
     ;;
   deploy_hosted)
-    registry_id="$(az acr show --subscription "$subscription_id" --resource-group "$resource_group" --name "$registry_name" --query id --output tsv)"
-    [[ -n "$registry_id" ]] || private_die "private ACR resource ID is required for hosted deployment"
-    export AZURE_SUBSCRIPTION_ID="$subscription_id"
     export FOUNDRY_PROJECT_ENDPOINT="$project_endpoint"
-    export FOUNDRY_ACR_RESOURCE_ID="$registry_id"
     export FOUNDRY_HOSTED_AGENT_NAME="$agent_name"
     export FOUNDRY_IMAGE="$hosted_image"
     export FOUNDRY_MODEL_DEPLOYMENT_NAME="$model_name"

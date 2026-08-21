@@ -1,6 +1,6 @@
 # Order Resolution Foundry-Private Deployment Plan
 
-**Status:** Validated
+**Status:** Blocked on Foundry hosted-compute activation
 **Approval source:** The user approved the Foundry-private Order Resolution
 plan and requested autonomous implementation through local proof, IaC,
 deployment, smoke, E2E, evaluations, telemetry, evidence, review, and commit.
@@ -104,6 +104,34 @@ enabled.
       scoped RBAC validation
 - [x] 15. Secret, stale-public-identifier, generated-artifact, and Git diff
       checks
+
+## Live deployment status
+
+The isolated Azure infrastructure, private endpoints and DNS, account and
+project capability hosts, model deployments, private runner, PostgreSQL
+bootstrap, immutable ACR packaging, and backend/frontend deployments are
+complete. The remaining release stages are blocked because Foundry fails every
+hosted version before creating a session.
+
+The blocker is reproduced with an immutable control image that uses
+Microsoft's official `azure-ai-agentserver-responses` host pattern and has no
+LangGraph, PostgreSQL, runtime connection, telemetry override, or application
+initialization. Control versions 4 and 5 failed after successful private ACR
+pulls, including after:
+
+- applying the current Standard Agent account-scoped Storage data roles;
+- reconciling the project capability host through `2025-04-01-preview`;
+- verifying both capability hosts are `Succeeded`;
+- verifying account network injection targets the dedicated delegated subnet;
+- verifying the project host references the expected private Storage, Cosmos
+  DB, and Search connections.
+
+The source now preserves the official Storage role contract, removes the
+unnecessary per-version ACR role-assignment capability, and classifies hosted
+and wrapper execution as `foundry-private-*`. A fresh full release must not run
+until Microsoft resolves or explains the service-side hosted activation
+failure. The sanitized reproduction and support handoff are tracked in
+[repository issue #1](https://github.com/ppenumatsa1/langgraph-wf-monorepo/issues/1).
 
 Validation results:
 

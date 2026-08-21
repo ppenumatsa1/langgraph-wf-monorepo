@@ -16,28 +16,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' existing 
   name: storageAccountName
 }
 
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2024-01-01' existing = {
-  parent: storageAccount
-  name: 'default'
-}
-
-resource azureMlBlobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2024-01-01' existing = {
-  parent: blobService
-  name: '${projectWorkspaceId}-azureml-blobstore'
-}
-
-resource agentsBlobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2024-01-01' existing = {
-  parent: blobService
-  name: '${projectWorkspaceId}-agents-blobstore'
-}
-
 resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' existing = {
   name: cosmosAccountName
-}
-
-resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-  scope: subscription()
-  name: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 }
 
 resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
@@ -47,24 +27,17 @@ resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleDefinitions@2022-
 
 var cosmosDataContributorRoleId = '${cosmosAccount.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
 var cosmosAgentDataScope = '${cosmosAccount.id}/dbs/enterprise_memory'
+var storageAgentContainerCondition = '((!(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read\'}) AND !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action\'}) AND !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write\'})) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase \'${projectWorkspaceId}\' AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase \'*-azureml-agent\'))'
 
-resource azureMlBlobContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(azureMlBlobContainer.id, projectPrincipalId, storageBlobDataContributorRole.id)
-  scope: azureMlBlobContainer
-  properties: {
-    roleDefinitionId: storageBlobDataContributorRole.id
-    principalId: projectPrincipalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource agentsBlobOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(agentsBlobContainer.id, projectPrincipalId, storageBlobDataOwnerRole.id)
-  scope: agentsBlobContainer
+resource storageAgentContainerOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(storageAccount.id, projectPrincipalId, storageBlobDataOwnerRole.id, projectWorkspaceId)
+  scope: storageAccount
   properties: {
     roleDefinitionId: storageBlobDataOwnerRole.id
     principalId: projectPrincipalId
     principalType: 'ServicePrincipal'
+    conditionVersion: '2.0'
+    condition: storageAgentContainerCondition
   }
 }
 

@@ -1300,9 +1300,9 @@ resource foundryUserRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' ex
   name: '53ca6127-db72-4b80-b1b0-d745d6d5456d'
 }
 
-resource storageAccountContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   scope: subscription()
-  name: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
+  name: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 }
 
 resource cosmosDbOperatorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
@@ -1369,31 +1369,6 @@ resource privateRunnerDeploymentExecutorRole 'Microsoft.Authorization/roleDefini
 
 resource containerRegistryRoleScope 'Microsoft.ContainerRegistry/registries@2025-04-01' existing = {
   name: containerRegistryName
-}
-
-var acrPullAssignmentCondition = '((!(ActionMatches{\'Microsoft.Authorization/roleAssignments/write\'})) OR (@Request[Microsoft.Authorization/roleAssignments:RoleDefinitionId] ForAnyOfAnyValues:GuidEquals {7f951dda-4ed3-4680-a7ca-43fe172d538d}))'
-
-resource privateRunnerAcrRoleAssignerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' = if (isBootstrap) {
-  name: '6eae6c86-0504-4a59-87d4-d4d6edecad87'
-  properties: {
-    roleName: 'Order Resolution Private ACR Pull Assigner'
-    description: 'Allows the private runner to grant the per-version Foundry identity registry pull access.'
-    type: 'CustomRole'
-    permissions: [
-      {
-        actions: [
-          'Microsoft.Authorization/roleAssignments/read'
-          'Microsoft.Authorization/roleAssignments/write'
-        ]
-        notActions: []
-        dataActions: []
-        notDataActions: []
-      }
-    ]
-    assignableScopes: [
-      resourceGroup().id
-    ]
-  }
 }
 
 resource foundryAccountRoleScope 'Microsoft.CognitiveServices/accounts@2025-06-01' existing = {
@@ -1480,21 +1455,6 @@ resource privateRunnerAcrPushBootstrap 'Microsoft.Authorization/roleAssignments@
     roleDefinitionId: acrPushRole.id
     principalId: privateRunnerVmBootstrap!.identity.principalId
     principalType: 'ServicePrincipal'
-  }
-  dependsOn: [
-    containerRegistryBootstrap
-  ]
-}
-
-resource privateRunnerAcrRoleAssignerBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isBootstrap) {
-  name: guid(containerRegistryRoleScope.id, privateRunnerVmName, privateRunnerAcrRoleAssignerRole.id)
-  scope: containerRegistryRoleScope
-  properties: {
-    roleDefinitionId: privateRunnerAcrRoleAssignerRole.id
-    principalId: privateRunnerVmBootstrap!.identity.principalId
-    principalType: 'ServicePrincipal'
-    condition: acrPullAssignmentCondition
-    conditionVersion: '2.0'
   }
   dependsOn: [
     containerRegistryBootstrap
@@ -1600,11 +1560,11 @@ resource backendFoundryUserBootstrap 'Microsoft.Authorization/roleAssignments@20
   ]
 }
 
-resource projectStorageAccountContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
-  name: guid(standardAgentStorageRoleScope.id, foundryProjectName, storageAccountContributorRole.id)
+resource projectStorageBlobDataContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
+  name: guid(standardAgentStorageRoleScope.id, foundryProjectName, storageBlobDataContributorRole.id)
   scope: standardAgentStorageRoleScope
   properties: {
-    roleDefinitionId: storageAccountContributorRole.id
+    roleDefinitionId: storageBlobDataContributorRole.id
     principalId: foundryProjectBootstrap!.identity.principalId
     principalType: 'ServicePrincipal'
   }
@@ -1684,7 +1644,7 @@ resource projectCapabilityHostBootstrap 'Microsoft.CognitiveServices/accounts/pr
     ]
   }
   dependsOn: [
-    projectStorageAccountContributorBootstrap
+    projectStorageBlobDataContributorBootstrap
     projectCosmosOperatorBootstrap
     projectSearchIndexDataContributorBootstrap
     projectSearchServiceContributorBootstrap

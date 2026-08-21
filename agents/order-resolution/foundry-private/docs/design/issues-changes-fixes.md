@@ -375,9 +375,8 @@ bootstrap, and excludes generated pytest scratch content.
 - The policy alone was insufficient because the Foundry project had no
   project-scoped `ContainerRegistry` connection. The official Azure Developer
   CLI template requires that managed-identity connection in addition to ACR
-  RBAC. Creating it moved hosted activation beyond the prior failures, and all
-  four existing versions converged to `active`. The connection is now
-  Bicep-managed and ordered after both project registry-reader assignments.
+  RBAC. The connection is now Bicep-managed and ordered after both project
+  registry-reader assignments.
 - The first successful private activation took slightly longer than the
   original ten-minute poll. The hosted deployment remains bounded but now
   allows up to twenty minutes before timing out.
@@ -389,30 +388,68 @@ bootstrap, and excludes generated pytest scratch content.
   definition still creates and waits for a new version.
 - Full SDK reads then proved the version-list summary incorrectly reported
   failed versions as active; deployment now normalizes the SDK status enum and
-  trusts full version details. The definitive provisioning gap was per-version
-  identity RBAC: direct SDK creation bypassed `azd deploy`'s automatic
-  `AcrPull` assignment. The runner now grants only `AcrPull` at the ACR scope
-  immediately after version creation, verifies propagation, and only then
-  polls activation. Its custom role permits role-assignment read/write only at
-  that registry assignment scope, and its version 2.0 RBAC condition rejects
-  writes for every role definition except `AcrPull`. The assignment can take
-  time to enter the runner's authorization path, so hosted deployment retries
-  only the explicit principal- and authorization-propagation error codes
-  within the existing bounded wait.
+  trusts full version details.
+- ACR data-plane diagnostics disproved the subsequent per-version identity
+  hypothesis. The Foundry project identity authenticated and pulled the exact
+  production and diagnostic digests from private `10.74.0.x` addresses with
+  HTTP 200 responses. The per-version identities did not perform those pulls.
+  The temporary runner permission to create per-version `AcrPull` assignments
+  therefore broadened privilege without affecting activation and has been
+  removed from Bicep and deployment automation.
+- The live Standard Agent Storage RBAC was compared with Microsoft's current
+  private-network template. The lane now grants the project identity
+  account-scoped `Storage Blob Data Contributor` before capability-host
+  creation and account-scoped `Storage Blob Data Owner` with the official
+  workspace-prefix and `*-azureml-agent` ABAC condition. The corrected roles
+  were deployed successfully, and the project capability host was reconciled
+  in place through the reference `2025-04-01-preview` API.
+- A raw HTTP diagnostic version still failed after the Storage correction.
+  A second control image used Microsoft's official
+  `azure-ai-agentserver-responses` host pattern with no LangGraph,
+  PostgreSQL, runtime connection, or application initialization. Its immutable
+  image was built and pulled successfully, but versions 4 and 5 both failed
+  before a hosted session existed, including after capability-host
+  reconciliation.
+- The account and project capability hosts remain `Succeeded`; the account
+  host references the dedicated Foundry subnet, and the project host references
+  the expected private Cosmos DB, Storage, and Search connections. This
+  isolates the remaining blocker to Foundry hosted-compute activation or its
+  service-side capability-host integration rather than application code,
+  container readiness, ACR access, or PostgreSQL.
+- Microsoft's current private template declares `disableLocalAuth: false`,
+  while this subscription enforces or normalizes the live account to `true`.
+  PATCH and full PUT tests through both `2025-06-01` and
+  `2025-04-01-preview` completed successfully but retained `true`. Public
+  network access remained disabled throughout. This compatibility difference
+  is included in the platform-support evidence rather than weakened locally.
+- The sanitized reproduction and support handoff are tracked in repository
+  issue
+  [#1](https://github.com/ppenumatsa1/langgraph-wf-monorepo/issues/1).
+- Hosted and wrapper environments now use `foundry-private-hosted` and
+  `foundry-private-wrapper`. This activates the lane's TLS, unresolved
+  placeholder, and externally managed schema guards instead of misclassifying
+  private runtime processes as `aca-private`.
 
 ## Open implementation follow-through
 
-1. Run noninteractive preview and private readiness checks from the private
-   runner; stop on any unexpected mutation or missing prerequisite.
-2. Run fresh hosted low-risk, approval/resume, damaged-item, telemetry, and
-   report-only evaluation checks after runtime and infrastructure work lands.
-3. Record release-window-scoped, secret-free evidence only after those checks
+1. Resolve the Foundry hosted-compute activation blocker with Microsoft using
+   the failed official control versions, deployment timestamps, capability
+   host state, account network injection, and successful private ACR pulls.
+2. After Microsoft confirms remediation, deploy a fresh production hosted
+   version from the exact committed digest; do not reuse failed diagnostic
+   versions as release evidence.
+3. Run fresh hosted low-risk, approval/resume, damaged-item, browser,
+   telemetry, and report-only evaluation checks.
+4. Record release-window-scoped, secret-free evidence only after those checks
    complete.
 
 ## Explicit non-claims
 
-- No live Azure deployment, private endpoint, DNS, identity, RBAC, runner,
-  smoke, E2E, evaluation, or telemetry success is claimed.
+- Azure infrastructure, private endpoints, DNS, identities, runner,
+  PostgreSQL readiness, private ACR packaging/pulls, and backend/frontend
+  deployment are live and verified. No active Foundry hosted version, hosted
+  smoke, hosted/browser E2E, Foundry evaluation, or release-window telemetry
+  success is claimed.
 - No historical resource ID, endpoint, conversation ID, evaluation ID, release
   ID, deployment ID, or success report is reused as private-lane evidence.
 - No public dependency endpoint is approved as a fallback.
