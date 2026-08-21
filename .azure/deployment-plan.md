@@ -113,9 +113,9 @@ bootstrap, immutable ACR packaging, and backend/frontend deployments are
 complete. The remaining release stages are blocked because Foundry fails every
 hosted version before creating a session.
 
-The blocker is reproduced with an immutable control image that uses
-Microsoft's official `azure-ai-agentserver-responses` host pattern and has no
-LangGraph, PostgreSQL, runtime connection, telemetry override, or application
+The blocker is reproduced with immutable control images that use Microsoft's
+official `azure-ai-agentserver-responses` host pattern and have no LangGraph,
+PostgreSQL, runtime connection, telemetry override, or application
 initialization. Control versions 4 and 5 failed after successful private ACR
 pulls, including after:
 
@@ -125,6 +125,13 @@ pulls, including after:
 - verifying account network injection targets the dedicated delegated subnet;
 - verifying the project host references the expected private Storage, Cosmos
   DB, and Search connections.
+
+Standalone control version 6 also failed using Microsoft's current sample
+Docker shape and exact sample prerelease SDK versions installed through the
+approved Microsoft feed. Private-runner Log Analytics queries confirmed
+repeated pulls of its exact digest by the project identity from private
+`10.74.0.x` addresses. This rules out production-image inheritance and stable
+SDK-version drift.
 
 The source now preserves the official Storage role contract, removes the
 unnecessary per-version ACR role-assignment capability, and classifies hosted

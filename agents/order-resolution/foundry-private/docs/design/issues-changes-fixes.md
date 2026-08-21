@@ -410,6 +410,15 @@ bootstrap, and excludes generated pytest scratch content.
   image was built and pulled successfully, but versions 4 and 5 both failed
   before a hosted session existed, including after capability-host
   reconciliation.
+- A final standalone control removed production-image inheritance and SDK
+  drift. It used Microsoft's current sample Docker shape (`python:3.12-slim`)
+  and exact sample versions `azure-ai-agentserver-responses==2.0.0b0`,
+  `azure-ai-projects==2.0.1`, and `azure-identity==1.25.3`, installed through
+  the approved Microsoft package feed. Version 6 failed identically before
+  session creation. Private-runner Log Analytics queries confirmed repeated
+  pulls of its exact digest by the project identity from `10.74.0.x`
+  addresses, so neither the production base image nor stable SDK versions are
+  plausible remaining causes.
 - The account and project capability hosts remain `Succeeded`; the account
   host references the dedicated Foundry subnet, and the project host references
   the expected private Cosmos DB, Storage, and Search connections. This
