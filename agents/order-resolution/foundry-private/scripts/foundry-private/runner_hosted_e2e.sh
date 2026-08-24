@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 source "$SCRIPT_DIR/common.sh"
 
 [[ "$1" == "hosted_e2e" ]] || private_die "private E2E stage mismatch"
-for command in jq tee; do
+for command in jq python3 tee; do
   private_require_command "$command"
 done
 private_require_target
@@ -17,7 +17,7 @@ evidence_file="$PRIVATE_ROOT_DIR/.artifacts/private-runner-hosted-e2e-${release_
 mkdir -p "$(dirname "$evidence_file")"
 
 extract_json() {
-  awk 'found { print; next } /^\{/ { found = 1; print }'
+  python3 "$SCRIPT_DIR/extract_azd_agent_json.py"
 }
 
 invoke_responses() {

@@ -6,12 +6,15 @@ source "$SCRIPT_DIR/common.sh"
 
 [[ "$1" == "smoke" ]] || private_die "private smoke stage mismatch"
 private_require_command jq
+private_require_command python3
 private_require_target
 
 agent_name="$(private_required_env_value HOSTED_AGENT_NAME)"
 raw="$(cd "$PRIVATE_AZD_DIR" && private_azd ai agent invoke "$agent_name" "Resolve delayed order ORD-1001" --protocol responses --new-conversation --new-session --no-prompt)"
-response="$(printf '%s\n' "$raw" | awk 'found { print; next } /^\{/ { found = 1; print }')"
-[[ -n "$response" ]] || private_die "private hosted smoke did not return JSON"
+response="$(
+  printf '%s\n' "$raw" |
+    python3 "$SCRIPT_DIR/extract_azd_agent_json.py"
+)" || private_die "private hosted smoke did not return JSON"
 jq -e '.status == "completed"' <<<"$response" >/dev/null ||
   private_die "private hosted smoke did not complete"
 conversation_id="$(

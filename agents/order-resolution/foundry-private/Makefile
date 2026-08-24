@@ -103,10 +103,10 @@ test-backend: ensure-backend-env
 test-scripts:
 	@set -euo pipefail; \
 	if [[ -x backend/.venv/bin/pytest ]]; then \
-		PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=backend:. backend/.venv/bin/pytest -q --basetemp scripts/foundry-private/tests/.pytest-work scripts/foundry-private/tests/test_private_evidence.py; \
+		PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=backend:. backend/.venv/bin/pytest -q --basetemp scripts/foundry-private/tests/.pytest-work scripts/foundry-private/tests/test_private_evidence.py scripts/foundry-private/tests/test_extract_azd_agent_json.py; \
 	else \
 		echo "backend/.venv is unavailable; running script-only tests with system Python."; \
-		PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=backend:. python3 -m pytest -q --basetemp scripts/foundry-private/tests/.pytest-work scripts/foundry-private/tests/test_private_evidence.py; \
+		PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=backend:. python3 -m pytest -q --basetemp scripts/foundry-private/tests/.pytest-work scripts/foundry-private/tests/test_private_evidence.py scripts/foundry-private/tests/test_extract_azd_agent_json.py; \
 	fi
 	bash scripts/foundry-private/tests/test_private_release_contract.sh
 
