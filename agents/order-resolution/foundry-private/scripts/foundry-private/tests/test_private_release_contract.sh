@@ -149,6 +149,9 @@ grep -Fq '.publicNetworkAccessForIngestion // .properties.publicNetworkAccessFor
 grep -Fq '.publicNetworkAccessForQuery // .properties.publicNetworkAccessForQuery' "$scripts_dir/verify.sh"
 grep -Fq '.artifacts/private-packages' "$scripts_dir/sync_hosted_source.sh"
 grep -Fq 'hosted_e2e' "$scripts_dir/release.sh"
+grep -Fq '(unique | length) == 3' "$scripts_dir/hosted_e2e.sh"
+printf '{"conversation_ids":["one","two","three"]}\n' |
+  jq -e '.conversation_ids | (type == "array" and length == 3 and (unique | length) == 3)' >/dev/null
 grep -Fq 'runner_bootstrap' "$scripts_dir/release.sh"
 grep -Fq 'browser_e2e' "$scripts_dir/release.sh"
 grep -Fq 'evaluation' "$scripts_dir/release.sh"

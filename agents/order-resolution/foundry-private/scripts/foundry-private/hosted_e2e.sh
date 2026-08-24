@@ -8,7 +8,7 @@ release_id="$(private_release_id)"
 "$SCRIPT_DIR/runner_exec.sh" hosted_e2e evidence/private-hosted-e2e-runner.json
 details="$(jq -c '.details' "$(private_release_dir)/evidence/private-hosted-e2e-runner.json")"
 
-jq -e '(.conversation_ids | type == "array" and length == 3 and unique | length == 3)' <<<"$details" >/dev/null ||
+jq -e '.conversation_ids | (type == "array" and length == 3 and (unique | length) == 3)' <<<"$details" >/dev/null ||
   private_die "private hosted E2E evidence must contain three unique conversations"
 jq -n \
   --arg release_id "$release_id" \
