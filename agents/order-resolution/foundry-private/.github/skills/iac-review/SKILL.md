@@ -17,9 +17,11 @@ configuration, and smoke scripts.
 
 ## Private network checklist
 
-- Confirm one BYO VNet with address space `10.74.0.0/16`.
+- Confirm the application BYO VNet `10.74.0.0/16` and dedicated Foundry BYO
+  VNet `10.76.0.0/16`.
 - Confirm non-overlapping subnet reservations:
-  - Foundry integration `10.74.0.0/24`
+  - Foundry integration `10.76.0.0/24`
+  - Foundry dependency endpoints `10.76.1.0/24`
   - Container Apps `10.74.2.0/23`
   - private endpoints `10.74.4.0/24`
   - runner `10.74.5.0/27`

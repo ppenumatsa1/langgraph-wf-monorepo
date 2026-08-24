@@ -66,6 +66,7 @@ set_sensitive_default() {
 
 set_default INFRASTRUCTURE_MODE bootstrap
 set_default DEPLOY_FOUNDRY_READY_RESOURCES false
+set_default FOUNDRY_VNET_NAME order-resolution-private-foundry-recovery-vnet
 set_default FOUNDRY_ACCOUNT_NAME "${name_base}ai"
 set_default FOUNDRY_PROJECT_NAME order-resolution-private
 set_default FOUNDRY_CUSTOM_SUBDOMAIN_NAME "$(private_required_env_value FOUNDRY_ACCOUNT_NAME)"

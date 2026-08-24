@@ -12,9 +12,10 @@ in this repository.
   shared application service.
 - Browser delivery: external frontend Container App -> same-origin `/api`
   proxy -> internal FastAPI wrapper -> private Foundry -> private PostgreSQL.
-- Private services use the BYO VNet `10.74.0.0/16`: Foundry integration
-  `10.74.0.0/24`, Container Apps `10.74.2.0/23`, private endpoints
-  `10.74.4.0/24`, and runner `10.74.5.0/27`.
+- Private services use the application VNet `10.74.0.0/16` and the dedicated
+  Foundry VNet `10.76.0.0/16`: Foundry integration `10.76.0.0/24`, Foundry
+  dependency endpoints `10.76.1.0/24`, Container Apps `10.74.2.0/23`,
+  application private endpoints `10.74.4.0/24`, and runner `10.74.5.0/27`.
 - Private ACR provides immutable images. A private runner performs
   authenticated automation; only the frontend has external ingress.
 - Durable HITL: LangGraph native `interrupt()` pauses the graph and

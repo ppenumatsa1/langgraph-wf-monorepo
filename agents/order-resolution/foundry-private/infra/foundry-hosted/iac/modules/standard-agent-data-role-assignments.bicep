@@ -9,7 +9,7 @@ param cosmosAccountName string
 @description('System-assigned principal ID of the Foundry project.')
 param projectPrincipalId string
 
-@description('Formatted internal workspace ID emitted by the Foundry project.')
+@description('Raw internal workspace ID emitted by the Foundry project.')
 param projectWorkspaceId string
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2024-01-01' existing = {

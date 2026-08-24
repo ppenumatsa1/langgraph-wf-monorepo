@@ -33,7 +33,8 @@ private endpoint.
 
 | Component | Network contract |
 | --- | --- |
-| Foundry integration | `10.74.0.0/24`, private endpoint/integration |
+| Foundry integration | `10.76.0.0/24`, dedicated network injection |
+| Foundry dependency endpoints | `10.76.1.0/24`, lane-owned private dependencies |
 | Container Apps | `10.74.2.0/23`; external frontend and internal wrapper |
 | Private endpoints | `10.74.4.0/24` for Foundry, PostgreSQL, ACR, and approved services |
 | Private runner | `10.74.5.0/27`, no public administrative ingress |

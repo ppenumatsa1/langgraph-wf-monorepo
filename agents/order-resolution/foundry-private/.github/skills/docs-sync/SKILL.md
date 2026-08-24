@@ -16,10 +16,11 @@ Use this skill when a change touches code, infrastructure as code, scripts, exam
   Mermaid source, manual testing, and the issues ledger: external frontend,
   internal wrapper, private Foundry, private PostgreSQL, private ACR, private
   runner, and Application Insights.
-- Use the fixed BYO VNet reservations (`10.74.0.0/16`, Foundry `10.74.0.0/24`,
-  Container Apps `10.74.2.0/23`, private endpoints `10.74.4.0/24`, runner
-  `10.74.5.0/27`) consistently. Do not invent public endpoints or historical
-  resource evidence.
+- Use the fixed VNet reservations (application `10.74.0.0/16`, Foundry
+  `10.76.0.0/16`, Foundry integration `10.76.0.0/24`, Foundry dependency
+  endpoints `10.76.1.0/24`, Container Apps `10.74.2.0/23`, application private
+  endpoints `10.74.4.0/24`, runner `10.74.5.0/27`) consistently. Do not invent
+  public endpoints or historical resource evidence.
 - Preserve business HITL (`interrupt()` / `Command(resume=...)`) separately
   from noninteractive deployment safety gates.
 - Update only docs whose instructions, examples, diagrams, or behavior descriptions would become stale.

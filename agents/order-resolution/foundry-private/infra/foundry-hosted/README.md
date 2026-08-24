@@ -17,13 +17,15 @@ React frontend Container App that proxies to an internal FastAPI wrapper.
 - AZD environment: `order-resolution-foundry-private`
 - Agent: `order-resolution-hosted`
 - VNet: `10.74.0.0/16`
+- Foundry VNet: `10.76.0.0/16`
 - Search private-endpoint VNet: `10.75.0.0/24`
 
 The VNet has dedicated, non-overlapping subnets:
 
 | Purpose | CIDR |
 | --- | --- |
-| Foundry Agent Service delegation | `10.74.0.0/24` |
+| Foundry Agent Service delegation | `10.76.0.0/24` |
+| Foundry dependency private endpoints | `10.76.1.0/24` |
 | Container Apps infrastructure | `10.74.2.0/23` |
 | Private endpoints | `10.74.4.0/24` |
 | Azure Run Command runner | `10.74.5.0/27` |

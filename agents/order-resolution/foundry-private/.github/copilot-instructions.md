@@ -55,8 +55,10 @@ output, checkpoint state, credentials, or secrets.
 - Private ACR supplies immutable images to the frontend and wrapper. A private
   runner in the runner subnet performs authenticated automation; GitHub Actions
   remains credential-free CI only.
-- The BYO VNet is `10.74.0.0/16`. The design reserves `10.74.0.0/24` for
-  Foundry integration, `10.74.2.0/23` for Container Apps,
+- The application BYO VNet is `10.74.0.0/16`; Foundry network injection uses
+  the separate `10.76.0.0/16` VNet. The design reserves `10.76.0.0/24` for
+  Foundry integration, `10.76.1.0/24` for Foundry dependency endpoints,
+  `10.74.2.0/23` for Container Apps,
   `10.74.4.0/24` for private endpoints, and `10.74.5.0/27` for the runner.
 - Private endpoints and private DNS are required for Foundry, PostgreSQL, and
   ACR. Only the frontend has external ingress; the wrapper has internal

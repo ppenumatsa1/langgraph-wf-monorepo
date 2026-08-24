@@ -42,12 +42,15 @@ browser-facing public endpoint.
 
 ## Private network contract
 
-The lane uses a dedicated BYO VNet with address space `10.74.0.0/16`.
-Subnets are intentionally non-overlapping and reserved as follows:
+The lane uses a primary BYO VNet with address space `10.74.0.0/16` and a
+dedicated Foundry network-injection VNet with address space `10.76.0.0/16`.
+The VNet split prevents a failed Foundry service-link operation from
+contaminating the application, endpoint, or runner subnets.
 
 | Subnet | CIDR | Responsibility |
 | --- | --- | --- |
-| Foundry integration | `10.74.0.0/24` | Private Foundry integration and delegated network requirements |
+| Foundry integration | `10.76.0.0/24` | Private Foundry integration and delegated network requirements |
+| Foundry dependency endpoints | `10.76.1.0/24` | Lane-owned ACR, Storage, Cosmos DB, and Search endpoints for hosted compute |
 | Container Apps | `10.74.2.0/23` | External frontend and internal FastAPI wrapper |
 | Private endpoints | `10.74.4.0/24` | Private endpoints for Foundry, PostgreSQL, and ACR |
 | Runner | `10.74.5.0/27` | Private, noninteractive Azure automation runner |

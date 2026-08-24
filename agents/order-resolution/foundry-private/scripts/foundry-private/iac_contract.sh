@@ -45,21 +45,54 @@ grep -Fq "external: true" "$template" ||
   private_die "private infrastructure contract requires the intended frontend-only ingress"
 grep -Fq "purpose: 'runner-egress-only'" "$template" ||
   private_die "private runner requires explicit outbound-only NAT"
+grep -Fq "foundryVnetAddressSpace = '10.76.0.0/16'" "$template" ||
+  private_die "Foundry network injection requires the dedicated recovery VNet"
+grep -Fq "foundryPrivateEndpointSubnetPrefix = '10.76.1.0/24'" "$template" ||
+  private_die "Foundry-hosted compute requires a dedicated dependency endpoint subnet"
+grep -Fq "privateToFoundryVnetPeeringBootstrap" "$template" ||
+  private_die "the application VNet must be peered to the Foundry VNet"
+grep -Fq "foundryToPrivateVnetPeeringBootstrap" "$template" ||
+  private_die "the Foundry VNet must be peered to the application VNet"
+grep -Fq "foundryContainerRegistryPrivateEndpointBootstrap" "$template" ||
+  private_die "Foundry-hosted compute requires a private path to the lane-owned registry"
+grep -Fq "foundryStoragePrivateEndpointBootstrap" "$template" ||
+  private_die "Foundry-hosted compute requires a private path to lane-owned storage"
+grep -Fq "foundryCosmosPrivateEndpointBootstrap" "$template" ||
+  private_die "Foundry-hosted compute requires a private path to lane-owned Cosmos DB"
+grep -Fq "foundrySearchPrivateEndpointBootstrap" "$template" ||
+  private_die "Foundry-hosted compute requires a private path to lane-owned AI Search"
 grep -Fq "targetPort: 8000" "$template" ||
   private_die "private backend ingress must target port 8000"
 grep -Fq "targetPort: 5173" "$template" ||
   private_die "private frontend ingress must target port 5173"
 grep -Fq "azureADAuthenticationAsArmPolicy" "$template" ||
   private_die "private ACR requires ARM-audience authentication for Foundry"
-grep -Fq "category: 'ContainerRegistry'" "$template" ||
-  private_die "private Foundry project requires a managed-identity ACR connection"
-grep -Fq "projectContainerRegistryConnectionBootstrap" "$template" ||
-  private_die "private Foundry project ACR connection must be deployment ordered"
+if grep -Fq "projectContainerRegistryConnectionBootstrap" "$template"; then
+  private_die "private Foundry ACR access must use project identity RBAC, not a project connection"
+fi
+grep -Fq "resource projectApplicationInsightsConnectionBootstrap" "$template" ||
+  private_die "private Foundry telemetry requires a project-scoped Application Insights connection"
+grep -Fq "isSharedToAll: false" "$template" ||
+  private_die "private Foundry telemetry connection must not be shared across projects"
+grep -Fq "resource foundryAccountDiagnosticsBootstrap" "$template" ||
+  private_die "private Foundry account must emit diagnostics to the private workspace"
+grep -Fq "category: 'Audit'" "$template" ||
+  private_die "private Foundry diagnostics must include audit events"
+grep -Fq "category: 'Trace'" "$template" ||
+  private_die "private Foundry diagnostics must include service traces"
+if grep -Fq "category: 'RequestResponse'" "$template"; then
+  private_die "private Foundry diagnostics must not enable request/response content capture"
+fi
 if grep -Fq "Order Resolution Private ACR Pull Assigner" "$template"; then
   private_die "private runner must not manage per-version hosted ACR assignments"
 fi
 grep -Fq "resource projectStorageBlobDataContributorBootstrap" "$template" ||
   private_die "private Standard Agent setup requires account-scoped Storage Blob Data Contributor"
+grep -Fq "projectWorkspaceId: projectWorkspaceId" "$template" ||
+  private_die "private Standard Agent storage condition requires the raw Foundry workspace ID"
+if grep -Fq "projectWorkspaceIdGuid" "$template"; then
+  private_die "private Standard Agent storage condition must not hyphenate the workspace ID"
+fi
 grep -Fq "StringLikeIgnoreCase \\'*-azureml-agent\\'" \
   "$PRIVATE_AZD_DIR/iac/modules/standard-agent-data-role-assignments.bicep" ||
   private_die "private Standard Agent setup requires the workspace-scoped Storage Blob Data Owner condition"

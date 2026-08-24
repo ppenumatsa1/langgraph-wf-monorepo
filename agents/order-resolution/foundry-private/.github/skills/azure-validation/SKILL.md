@@ -10,8 +10,10 @@ live behavior without running commands that mutate Azure resources.
 
 ## Private lane contract
 
-- BYO VNet: `10.74.0.0/16`.
-- Foundry integration subnet: `10.74.0.0/24`.
+- Application BYO VNet: `10.74.0.0/16`.
+- Foundry BYO VNet: `10.76.0.0/16`.
+- Foundry integration subnet: `10.76.0.0/24`.
+- Foundry dependency endpoint subnet: `10.76.1.0/24`.
 - Container Apps subnet: `10.74.2.0/23`.
 - Private endpoint subnet: `10.74.4.0/24`.
 - Private runner subnet: `10.74.5.0/27`.

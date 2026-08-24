@@ -6,6 +6,7 @@
     "deployFoundryReadyResources": { "value": "${DEPLOY_FOUNDRY_READY_RESOURCES=false}" },
     "namePrefix": { "value": "${NAME_PREFIX}" },
     "location": { "value": "${AZURE_LOCATION}" },
+    "foundryVnetName": { "value": "${FOUNDRY_VNET_NAME}" },
     "foundryAccountName": { "value": "${FOUNDRY_ACCOUNT_NAME}" },
     "foundryProjectName": { "value": "${FOUNDRY_PROJECT_NAME}" },
     "foundryCustomSubDomainName": { "value": "${FOUNDRY_CUSTOM_SUBDOMAIN_NAME}" },

@@ -15,13 +15,15 @@ deployment success.
 
 ### 1. Isolated BYO VNet
 
-The lane uses a primary isolated BYO VNet with address space `10.74.0.0/16`
-plus a small `westus3` VNet globally peered for the Search private endpoint.
+The lane uses a primary isolated BYO VNet with address space `10.74.0.0/16`,
+a dedicated Foundry network-injection VNet with address space `10.76.0.0/16`,
+and a small `westus3` VNet globally peered for the Search private endpoint.
 Reserved subnets are:
 
 | Reservation | CIDR | Purpose |
 | --- | --- | --- |
-| Foundry integration | `10.74.0.0/24` | Private Foundry integration |
+| Foundry integration | `10.76.0.0/24` | Private Foundry integration |
+| Foundry dependency endpoints | `10.76.1.0/24` | Hosted-compute endpoints for lane-owned dependencies |
 | Container Apps | `10.74.2.0/23` | External frontend and internal wrapper |
 | Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and approved services |
 | Private runner | `10.74.5.0/27` | Noninteractive validation and approved mutation |
@@ -372,20 +374,18 @@ bootstrap, and excludes generated pytest scratch content.
   enables that policy in Bicep, and packaging fails closed unless the live
   policy is `enabled`. Admin authentication and public network access remain
   disabled.
-- The policy alone was insufficient because the Foundry project had no
-  project-scoped `ContainerRegistry` connection. The official Azure Developer
-  CLI template requires that managed-identity connection in addition to ACR
-  RBAC. The connection is now Bicep-managed and ordered after both project
-  registry-reader assignments.
-- The first successful private activation took slightly longer than the
-  original ten-minute poll. The hosted deployment remains bounded but now
-  allows up to twenty minutes before timing out.
-- A subsequent release attempted to create a fifth version even though an
-  active version already matched the exact hosted digest and runtime
-  definition; the service returned its generic retryable provisioning error.
-  Hosted deployment now reuses an active version only when immutable image,
-  environment, CPU, memory, and instance identity all match. A changed runtime
-  definition still creates and waits for a new version.
+- Comparison with the known-good MAF private project proved that a
+  project-scoped `ContainerRegistry` connection is not required. Foundry pulls
+  private images through the project identity's `AcrPull` and Container
+  Registry Repository Reader assignments. The speculative ACR connection was
+  removed from the live project and from Bicep.
+- The MAF baseline uses a project-scoped, non-shared Application Insights
+  connection. The lane now follows that scope instead of inheriting an
+  account-shared connection.
+- Hosted deployment remains bounded at twenty minutes and reuses an active
+  version only when immutable image, environment, CPU, memory, and instance
+  identity all match. A changed runtime definition still creates and waits for
+  a new version.
 - Full SDK reads then proved the version-list summary incorrectly reported
   failed versions as active; deployment now normalizes the SDK status enum and
   trusts full version details.
@@ -425,21 +425,37 @@ bootstrap, and excludes generated pytest scratch content.
   isolates the remaining blocker to Foundry hosted-compute activation or its
   service-side capability-host integration rather than application code,
   container readiness, ACR access, or PostgreSQL.
-- Microsoft's current private template declares `disableLocalAuth: false`,
-  while the live account remains `true`. PATCH and full PUT tests through both
-  `2025-06-01` and `2025-04-01-preview` completed successfully but retained
-  `true`. Azure Policy state identified the cause: the inherited
-  `MCAPSGovDeployPolicies` initiative applies the
-  `cognitiveservicesdisablelocalauth` reference with a `Modify` effect. A
-  narrow, resource-scoped policy exemption is required before this
-  compatibility hypothesis can be tested. Public network access remains
-  disabled and no exemption has been created without governance authorization.
-  The signed-in identity is Subscription Owner and can write the exemption at
-  the account scope, but Azure rejected creation because it lacks
-  `Microsoft.Authorization/policyAssignments/exempt/action` on the inherited
-  management-group assignment. No eligible or active PIM assignment exists at
-  that management group. A management-group policy administrator must either
-  create the scoped exemption or temporarily grant the required action.
+- Both the working MAF account and the failing LangGraph account have
+  `disableLocalAuth: true` and public network access disabled. The inherited
+  `MCAPSGovDeployPolicies` assignment therefore explains why account updates
+  retain Entra-only authentication, but it does not explain hosted activation.
+  No policy exemption is required or justified.
+- The same standalone Microsoft Responses control became `active` and created
+  a session as version 1 in the existing MAF private account. It then became
+  `active` and created a session in a new Foundry account injected into a fresh
+  subnet in the MAF VNet. This disproves a subscription-wide or regional
+  service outage and proves the image, SDK, ACR pattern, policy state, and
+  current account-creation path can work.
+- In the LangGraph VNet, the same control failed in the original project, a
+  fresh project, a fresh account on a separate delegated `/24`, and a second
+  fresh account created after removing global VNet peering. It also failed
+  after matching MAF NAT, service endpoint, NSG, project connection, RBAC, and
+  Standard Agent dependency settings.
+- A recovery project using the exact MAF Storage, Cosmos DB, and Search
+  dependencies returned `invalid_configuration` with request IDs
+  `1e32f26f360f4fc0573cee5696f0a1df`,
+  `b1d31ec65ad691240ea08a83b8754038`, and
+  `53075aa912bf7ced00d9405fb0da07ef`. Foundry reported that a
+  customer-managed downstream dependency was inaccessible even though the
+  same dependencies activate from the MAF VNet.
+- The remaining blocker is therefore isolated to Foundry's managed
+  network-injection/service-link path for the LangGraph VNet. The account and
+  subnet resources report `Succeeded`, so this condition cannot be repaired
+  safely by broadening application RBAC or weakening public-network controls.
+- The MAF baseline also proved that Storage Blob Data Owner's ABAC condition
+  must use the raw 32-character Foundry workspace ID. The lane had formatted
+  that value as a hyphenated GUID; Bicep now preserves the raw ID. This was a
+  real authorization defect but did not by itself resolve activation.
 - The sanitized reproduction and support handoff are tracked in repository
   issue
   [#1](https://github.com/ppenumatsa1/langgraph-wf-monorepo/issues/1).
@@ -450,9 +466,9 @@ bootstrap, and excludes generated pytest scratch content.
 
 ## Open implementation follow-through
 
-1. Resolve the Foundry hosted-compute activation blocker with Microsoft using
-   the failed official control versions, deployment timestamps, capability
-   host state, account network injection, and successful private ACR pulls.
+1. Resolve the Foundry network-injection blocker with Microsoft using the
+   failed control versions, downstream-dependency request IDs, successful MAF
+   VNet controls, capability-host state, and successful private ACR pulls.
 2. After Microsoft confirms remediation, deploy a fresh production hosted
    version from the exact committed digest; do not reuse failed diagnostic
    versions as release evidence.

@@ -27,8 +27,14 @@ param tags object = {}
 @description('Name of the isolated customer-owned virtual network.')
 param privateVnetName string = 'order-resolution-private-vnet'
 
+@description('Name of the dedicated Foundry network-injection virtual network.')
+param foundryVnetName string = 'order-resolution-private-foundry-recovery-vnet'
+
 @description('Name of the Foundry Agent Service delegated subnet.')
 param foundryAgentSubnetName string = 'foundry-agents'
+
+@description('Name of the private endpoint subnet used by Foundry-hosted compute.')
+param foundryPrivateEndpointSubnetName string = 'private-endpoints'
 
 @description('Name of the Container Apps infrastructure subnet.')
 param containerAppsSubnetName string = 'container-apps-infra'
@@ -200,8 +206,10 @@ var isFoundryReadyPhase = isBootstrap && deployFoundryReadyResources
 var foundryProjectEndpoint = 'https://${foundryAccountName}.services.ai.azure.com/api/projects/${foundryProjectName}'
 var foundryHostedResponsesUrl = '${foundryProjectEndpoint}/agents/${hostedAgentName}/endpoint/protocols/openai/responses?api-version=v1'
 var privateVnetAddressSpace = '10.74.0.0/16'
+var foundryVnetAddressSpace = '10.76.0.0/16'
 var searchPrivateVnetAddressSpace = '10.75.0.0/24'
-var foundryAgentSubnetPrefix = '10.74.0.0/24'
+var foundryAgentSubnetPrefix = '10.76.0.0/24'
+var foundryPrivateEndpointSubnetPrefix = '10.76.1.0/24'
 var containerAppsSubnetPrefix = '10.74.2.0/23'
 var privateEndpointSubnetPrefix = '10.74.4.0/24'
 var privateRunnerSubnetPrefix = '10.74.5.0/27'
@@ -224,6 +232,20 @@ var privateDnsZoneNames = [
   'privatelink.ods.opinsights.azure.com'
   'privatelink.agentsvc.azure-automation.net'
 ]
+var foundryPrivateDnsLinkNames = [
+  'foundry-recovery-services-ai-link'
+  'foundry-recovery-openai-link'
+  'foundry-recovery-cognitive-services-link'
+  'foundry-recovery-privatelink'
+  'foundry-recovery-privatelink'
+  'foundry-recovery-privatelink'
+  'foundry-recovery-privatelink'
+  'foundry-recovery-postgres-link'
+  'foundry-recovery-monitor-link'
+  'foundry-recovery-oms-link'
+  'foundry-recovery-ods-link'
+  'foundry-recovery-9894bb62dc21'
+]
 var foundryProjectId = resourceId('Microsoft.CognitiveServices/accounts/projects', foundryAccountName, foundryProjectName)
 var applicationInsightsId = resourceId('Microsoft.Insights/components', applicationInsightsName)
 var logAnalyticsWorkspaceId = resourceId('Microsoft.OperationalInsights/workspaces', logAnalyticsWorkspaceName)
@@ -244,6 +266,19 @@ resource privateVnetBootstrap 'Microsoft.Network/virtualNetworks@2024-05-01' = i
   tags: tags
 }
 
+resource foundryVnetBootstrap 'Microsoft.Network/virtualNetworks@2024-05-01' = if (isBootstrap) {
+  name: foundryVnetName
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        foundryVnetAddressSpace
+      ]
+    }
+  }
+  tags: tags
+}
+
 resource searchPrivateVnetBootstrap 'Microsoft.Network/virtualNetworks@2024-05-01' = if (isBootstrap) {
   name: searchPrivateVnetName
   location: standardAgentSearchLocation
@@ -258,10 +293,17 @@ resource searchPrivateVnetBootstrap 'Microsoft.Network/virtualNetworks@2024-05-0
 }
 
 resource foundryAgentSubnetBootstrap 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = if (isBootstrap) {
-  parent: privateVnetBootstrap
+  parent: foundryVnetBootstrap
   name: foundryAgentSubnetName
   properties: {
     addressPrefix: foundryAgentSubnetPrefix
+    privateEndpointNetworkPolicies: 'Disabled'
+    networkSecurityGroup: {
+      id: foundryNetworkSecurityGroupBootstrap!.id
+    }
+    natGateway: {
+      id: foundryNatGatewayBootstrap!.id
+    }
     delegations: [
       {
         name: 'foundry-agent-environments'
@@ -270,6 +312,18 @@ resource foundryAgentSubnetBootstrap 'Microsoft.Network/virtualNetworks/subnets@
         }
       }
     ]
+  }
+}
+
+resource foundryPrivateEndpointSubnetBootstrap 'Microsoft.Network/virtualNetworks/subnets@2024-05-01' = if (isBootstrap) {
+  parent: foundryVnetBootstrap
+  name: foundryPrivateEndpointSubnetName
+  properties: {
+    addressPrefix: foundryPrivateEndpointSubnetPrefix
+    privateEndpointNetworkPolicies: 'Disabled'
+    networkSecurityGroup: {
+      id: foundryPrivateEndpointNetworkSecurityGroupBootstrap!.id
+    }
   }
 }
 
@@ -347,6 +401,92 @@ resource searchToPrivateVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/
     privateRunnerSubnetBootstrap
     searchPrivateEndpointSubnetBootstrap
   ]
+}
+
+resource privateToFoundryVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = if (isBootstrap) {
+  parent: privateVnetBootstrap
+  name: 'to-foundry-private-vnet'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+    remoteVirtualNetwork: {
+      id: foundryVnetBootstrap!.id
+    }
+  }
+  dependsOn: [
+    containerAppsSubnetBootstrap
+    privateEndpointSubnetBootstrap
+    privateRunnerSubnetBootstrap
+    foundryAgentSubnetBootstrap
+    foundryPrivateEndpointSubnetBootstrap
+  ]
+}
+
+resource foundryToPrivateVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2024-05-01' = if (isBootstrap) {
+  parent: foundryVnetBootstrap
+  name: 'to-primary-private-vnet'
+  properties: {
+    allowVirtualNetworkAccess: true
+    allowForwardedTraffic: true
+    allowGatewayTransit: false
+    useRemoteGateways: false
+    remoteVirtualNetwork: {
+      id: privateVnetBootstrap!.id
+    }
+  }
+  dependsOn: [
+    containerAppsSubnetBootstrap
+    privateEndpointSubnetBootstrap
+    privateRunnerSubnetBootstrap
+    foundryAgentSubnetBootstrap
+    foundryPrivateEndpointSubnetBootstrap
+  ]
+}
+
+resource foundryNetworkSecurityGroupBootstrap 'Microsoft.Network/networkSecurityGroups@2024-05-01' = if (isBootstrap) {
+  name: '${namePrefix}-${uniqueString(subscription().id, resourceGroup().id, namePrefix)}-foundry-recovery-nsg'
+  location: location
+  tags: tags
+}
+
+resource foundryPrivateEndpointNetworkSecurityGroupBootstrap 'Microsoft.Network/networkSecurityGroups@2024-05-01' = if (isBootstrap) {
+  name: '${foundryVnetName}-${foundryPrivateEndpointSubnetName}-nsg-${location}'
+  location: location
+  tags: tags
+}
+
+resource foundryNatPublicIpBootstrap 'Microsoft.Network/publicIPAddresses@2024-05-01' = if (isBootstrap) {
+  name: '${namePrefix}-${uniqueString(subscription().id, resourceGroup().id, namePrefix)}-foundry-recovery-pip'
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    publicIPAllocationMethod: 'Static'
+    publicIPAddressVersion: 'IPv4'
+  }
+  tags: union(tags, {
+    purpose: 'foundry-hosted-egress-only'
+  })
+}
+
+resource foundryNatGatewayBootstrap 'Microsoft.Network/natGateways@2024-05-01' = if (isBootstrap) {
+  name: '${namePrefix}-${uniqueString(subscription().id, resourceGroup().id, namePrefix)}-foundry-recovery-nat'
+  location: location
+  sku: {
+    name: 'Standard'
+  }
+  properties: {
+    idleTimeoutInMinutes: 10
+    publicIpAddresses: [
+      {
+        id: foundryNatPublicIpBootstrap!.id
+      }
+    ]
+  }
+  tags: tags
 }
 
 resource privateRunnerNsgBootstrap 'Microsoft.Network/networkSecurityGroups@2024-05-01' = if (isBootstrap) {
@@ -460,6 +600,18 @@ resource privateDnsZoneVnetLinksBootstrap 'Microsoft.Network/privateDnsZones/vir
   properties: {
     virtualNetwork: {
       id: privateVnetBootstrap!.id
+    }
+    registrationEnabled: false
+  }
+}]
+
+resource foundryPrivateDnsZoneVnetLinksBootstrap 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-06-01' = [for (zoneName, index) in privateDnsZoneNames: if (isBootstrap) {
+  parent: privateDnsZoneResourcesBootstrap[index]
+  name: foundryPrivateDnsLinkNames[index]
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: foundryVnetBootstrap!.id
     }
     registrationEnabled: false
   }
@@ -676,6 +828,34 @@ resource logAnalyticsWorkspaceBootstrap 'Microsoft.OperationalInsights/workspace
     publicNetworkAccessForQuery: 'Disabled'
   }
   tags: tags
+}
+
+resource foundryAccountDiagnosticsBootstrap 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = if (isFoundryConvergencePhase) {
+  name: 'foundry-private-diagnostics'
+  scope: foundryAccountBootstrap
+  properties: {
+    workspaceId: logAnalyticsWorkspaceBootstrap!.id
+    logs: [
+      {
+        category: 'Audit'
+        enabled: true
+      }
+      {
+        category: 'Trace'
+        enabled: true
+      }
+      {
+        category: 'ManagedNetworkEvent'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+  }
 }
 
 resource applicationInsightsBootstrap 'Microsoft.Insights/components@2020-02-02' = if (isBootstrap) {
@@ -961,6 +1141,94 @@ resource containerRegistryPrivateEndpointBootstrap 'Microsoft.Network/privateEnd
   tags: tags
 }
 
+resource foundryStoragePrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
+  name: take('${standardAgentStorageAccountName}-foundry-blob-pe', 80)
+  location: location
+  properties: {
+    subnet: {
+      id: foundryPrivateEndpointSubnetBootstrap!.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'foundry-storage-blob'
+        properties: {
+          privateLinkServiceId: standardAgentStorageBootstrap!.id
+          groupIds: [
+            'blob'
+          ]
+        }
+      }
+    ]
+  }
+  tags: tags
+}
+
+resource foundryCosmosPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
+  name: take('${standardAgentCosmosAccountName}-foundry-sql-pe', 80)
+  location: location
+  properties: {
+    subnet: {
+      id: foundryPrivateEndpointSubnetBootstrap!.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'foundry-cosmos-sql'
+        properties: {
+          privateLinkServiceId: standardAgentCosmosBootstrap!.id
+          groupIds: [
+            'Sql'
+          ]
+        }
+      }
+    ]
+  }
+  tags: tags
+}
+
+resource foundrySearchPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
+  name: take('${standardAgentSearchName}-foundry-search-pe', 80)
+  location: location
+  properties: {
+    subnet: {
+      id: foundryPrivateEndpointSubnetBootstrap!.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'foundry-search-service'
+        properties: {
+          privateLinkServiceId: standardAgentSearchBootstrap!.id
+          groupIds: [
+            'searchService'
+          ]
+        }
+      }
+    ]
+  }
+  tags: tags
+}
+
+resource foundryContainerRegistryPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
+  name: take('${containerRegistryName}-foundry-registry-pe', 80)
+  location: location
+  properties: {
+    subnet: {
+      id: foundryPrivateEndpointSubnetBootstrap!.id
+    }
+    privateLinkServiceConnections: [
+      {
+        name: 'foundry-container-registry'
+        properties: {
+          privateLinkServiceId: containerRegistryBootstrap!.id
+          groupIds: [
+            'registry'
+          ]
+        }
+      }
+    ]
+  }
+  tags: tags
+}
+
 resource postgresPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
   name: take('${postgresServerName}-postgres-pe', 80)
   location: location
@@ -1036,6 +1304,78 @@ resource foundryPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints
   }
   dependsOn: [
     privateDnsZoneVnetLinksBootstrap
+  ]
+}
+
+resource foundryStoragePrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (isBootstrap) {
+  parent: foundryStoragePrivateEndpointBootstrap
+  name: 'foundry-storage-dns'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'blob'
+        properties: {
+          privateDnsZoneId: privateDnsZoneResourcesBootstrap[4].id
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    foundryPrivateDnsZoneVnetLinksBootstrap
+  ]
+}
+
+resource foundryCosmosPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (isBootstrap) {
+  parent: foundryCosmosPrivateEndpointBootstrap
+  name: 'foundry-cosmos-dns'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'cosmos'
+        properties: {
+          privateDnsZoneId: privateDnsZoneResourcesBootstrap[5].id
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    foundryPrivateDnsZoneVnetLinksBootstrap
+  ]
+}
+
+resource foundrySearchPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (isBootstrap) {
+  parent: foundrySearchPrivateEndpointBootstrap
+  name: 'foundry-search-dns'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'search'
+        properties: {
+          privateDnsZoneId: privateDnsZoneResourcesBootstrap[3].id
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    foundryPrivateDnsZoneVnetLinksBootstrap
+  ]
+}
+
+resource foundryContainerRegistryPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (isBootstrap) {
+  parent: foundryContainerRegistryPrivateEndpointBootstrap
+  name: 'foundry-registry-dns'
+  properties: {
+    privateDnsZoneConfigs: [
+      {
+        name: 'registry'
+        properties: {
+          privateDnsZoneId: privateDnsZoneResourcesBootstrap[6].id
+        }
+      }
+    ]
+  }
+  dependsOn: [
+    foundryPrivateDnsZoneVnetLinksBootstrap
   ]
 }
 
@@ -1232,36 +1572,14 @@ resource projectSearchConnectionBootstrap 'Microsoft.CognitiveServices/accounts/
   }
 }
 
-resource projectContainerRegistryConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
+resource projectApplicationInsightsConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
   parent: foundryProjectBootstrap
-  name: '${containerRegistryName}-conn'
-  properties: {
-    category: 'ContainerRegistry'
-    target: '${containerRegistryName}.azurecr.io'
-    authType: 'ManagedIdentity'
-    credentials: {
-      clientId: foundryProjectBootstrap!.identity.principalId
-      resourceId: containerRegistryBootstrap!.id
-    }
-    isSharedToAll: true
-    metadata: {
-      ResourceId: containerRegistryBootstrap!.id
-    }
-  }
-  dependsOn: [
-    projectAcrPullBootstrap
-    projectAcrRepositoryReaderBootstrap
-  ]
-}
-
-resource accountApplicationInsightsConnectionBootstrap 'Microsoft.CognitiveServices/accounts/connections@2025-04-01-preview' = if (isFoundryReadyPhase) {
-  parent: foundryAccountRoleScope
   name: 'ApplicationInsights'
   properties: {
     category: 'AppInsights'
     target: applicationInsightsBootstrap!.id
     authType: 'ApiKey'
-    isSharedToAll: true
+    isSharedToAll: false
     credentials: {
       key: applicationInsightsBootstrap!.properties.ConnectionString
     }
@@ -1305,6 +1623,11 @@ resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions
   name: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 }
 
+resource storageAccountContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
+}
+
 resource cosmosDbOperatorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   scope: subscription()
   name: '230815da-be43-4aae-9cb4-875f7bd000aa'
@@ -1323,6 +1646,11 @@ resource searchServiceContributorRole 'Microsoft.Authorization/roleDefinitions@2
 resource logAnalyticsReaderRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   scope: subscription()
   name: '73c42c96-874c-492b-b04d-ab87d138a893'
+}
+
+resource monitoringMetricsPublisherRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: '3913510d-42f4-4e42-8a64-420c390055eb'
 }
 
 resource readerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
@@ -1547,6 +1875,16 @@ resource projectOpenAIUserBootstrap 'Microsoft.Authorization/roleAssignments@202
   }
 }
 
+resource projectFoundryUserBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
+  name: guid(foundryAccountRoleScope.id, foundryProjectName, foundryUserRole.id)
+  scope: foundryAccountRoleScope
+  properties: {
+    roleDefinitionId: foundryUserRole.id
+    principalId: foundryProjectBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 resource backendFoundryUserBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
   name: guid(foundryProjectRoleScope.id, privateBackendManagedIdentityName, foundryUserRole.id)
   scope: foundryProjectRoleScope
@@ -1571,6 +1909,36 @@ resource projectStorageBlobDataContributorBootstrap 'Microsoft.Authorization/rol
   dependsOn: [
     standardAgentStorageBootstrap
   ]
+}
+
+resource projectStorageAccountContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
+  name: guid(standardAgentStorageRoleScope.id, foundryProjectName, storageAccountContributorRole.id)
+  scope: standardAgentStorageRoleScope
+  properties: {
+    roleDefinitionId: storageAccountContributorRole.id
+    principalId: foundryProjectBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource accountStorageBlobDataContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryConvergencePhase) {
+  name: guid(standardAgentStorageRoleScope.id, foundryAccountName, storageBlobDataContributorRole.id)
+  scope: standardAgentStorageRoleScope
+  properties: {
+    roleDefinitionId: storageBlobDataContributorRole.id
+    principalId: foundryAccountBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource accountStorageAccountContributorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryConvergencePhase) {
+  name: guid(standardAgentStorageRoleScope.id, foundryAccountName, storageAccountContributorRole.id)
+  scope: standardAgentStorageRoleScope
+  properties: {
+    roleDefinitionId: storageAccountContributorRole.id
+    principalId: foundryAccountBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
 }
 
 resource projectCosmosOperatorBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
@@ -1625,6 +1993,26 @@ resource projectLogAnalyticsReaderBootstrap 'Microsoft.Authorization/roleAssignm
   ]
 }
 
+resource projectApplicationInsightsLogReaderBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
+  name: guid(applicationInsightsBootstrap!.id, foundryProjectName, logAnalyticsReaderRole.id)
+  scope: applicationInsightsBootstrap
+  properties: {
+    roleDefinitionId: logAnalyticsReaderRole.id
+    principalId: foundryProjectBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource projectMonitoringMetricsPublisherBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryReadyPhase) {
+  name: guid(applicationInsightsBootstrap!.id, foundryProjectName, monitoringMetricsPublisherRole.id)
+  scope: applicationInsightsBootstrap
+  properties: {
+    roleDefinitionId: monitoringMetricsPublisherRole.id
+    principalId: foundryProjectBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // The platform creates this account host from networkInjections. Creating another
 // account capability host races the platform and can leave a subnet association behind.
 resource projectCapabilityHostBootstrap 'Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-06-01' = if (isFoundryReadyPhase) {
@@ -1644,6 +2032,10 @@ resource projectCapabilityHostBootstrap 'Microsoft.CognitiveServices/accounts/pr
     ]
   }
   dependsOn: [
+    foundryStoragePrivateDnsZoneGroupBootstrap
+    foundryCosmosPrivateDnsZoneGroupBootstrap
+    foundrySearchPrivateDnsZoneGroupBootstrap
+    foundryContainerRegistryPrivateDnsZoneGroupBootstrap
     projectStorageBlobDataContributorBootstrap
     projectCosmosOperatorBootstrap
     projectSearchIndexDataContributorBootstrap
@@ -1653,7 +2045,6 @@ resource projectCapabilityHostBootstrap 'Microsoft.CognitiveServices/accounts/pr
 
 #disable-next-line BCP053
 var projectWorkspaceId = foundryProjectBootstrap!.properties.internalId
-var projectWorkspaceIdGuid = '${substring(projectWorkspaceId, 0, 8)}-${substring(projectWorkspaceId, 8, 4)}-${substring(projectWorkspaceId, 12, 4)}-${substring(projectWorkspaceId, 16, 4)}-${substring(projectWorkspaceId, 20, 12)}'
 
 module standardAgentDataRoleAssignmentsBootstrap 'modules/standard-agent-data-role-assignments.bicep' = if (isFoundryReadyPhase) {
   name: 'standard-agent-data-roles-${uniqueString(resourceGroup().id, foundryProjectName)}'
@@ -1661,7 +2052,7 @@ module standardAgentDataRoleAssignmentsBootstrap 'modules/standard-agent-data-ro
     storageAccountName: standardAgentStorageAccountName
     cosmosAccountName: standardAgentCosmosAccountName
     projectPrincipalId: foundryProjectBootstrap!.identity.principalId
-    projectWorkspaceId: projectWorkspaceIdGuid
+    projectWorkspaceId: projectWorkspaceId
   }
   dependsOn: [
     projectCapabilityHostBootstrap
@@ -1863,7 +2254,9 @@ output STANDARD_AGENT_COSMOS_ACCOUNT_NAME string = standardAgentCosmosAccountNam
 output STANDARD_AGENT_SEARCH_NAME string = standardAgentSearchName
 output PRIVATE_VNET_ID string = resourceId('Microsoft.Network/virtualNetworks', privateVnetName)
 output PRIVATE_VNET_NAME string = privateVnetName
-output FOUNDRY_AGENT_SUBNET_ID string = '${resourceId('Microsoft.Network/virtualNetworks', privateVnetName)}/subnets/${foundryAgentSubnetName}'
+output FOUNDRY_VNET_ID string = resourceId('Microsoft.Network/virtualNetworks', foundryVnetName)
+output FOUNDRY_VNET_NAME string = foundryVnetName
+output FOUNDRY_AGENT_SUBNET_ID string = '${resourceId('Microsoft.Network/virtualNetworks', foundryVnetName)}/subnets/${foundryAgentSubnetName}'
 output CONTAINER_APPS_INFRASTRUCTURE_SUBNET_ID string = '${resourceId('Microsoft.Network/virtualNetworks', privateVnetName)}/subnets/${containerAppsSubnetName}'
 output PRIVATE_ENDPOINT_SUBNET_ID string = '${resourceId('Microsoft.Network/virtualNetworks', privateVnetName)}/subnets/${privateEndpointSubnetName}'
 output PRIVATE_RUNNER_SUBNET_ID string = '${resourceId('Microsoft.Network/virtualNetworks', privateVnetName)}/subnets/${privateRunnerSubnetName}'

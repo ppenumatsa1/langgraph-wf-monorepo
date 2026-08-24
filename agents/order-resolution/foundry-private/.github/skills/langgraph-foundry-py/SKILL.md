@@ -27,9 +27,11 @@ Use this repository-owned skill for the application's single LangGraph workflow 
   FastAPI wrapper through same-origin `/api`. The wrapper calls private Foundry
   and private PostgreSQL; private ACR and a private runner provide delivery
   and automation.
-- The BYO VNet is `10.74.0.0/16` with Foundry integration `10.74.0.0/24`,
-  Container Apps `10.74.2.0/23`, private endpoints `10.74.4.0/24`, and
-  runner `10.74.5.0/27`. Private DNS and managed-identity connectivity are
+- The application VNet is `10.74.0.0/16`; Foundry uses the separate
+  `10.76.0.0/16` VNet with integration subnet `10.76.0.0/24` and dependency
+  endpoint subnet `10.76.1.0/24`. Container Apps use `10.74.2.0/23`,
+  application private endpoints use `10.74.4.0/24`, and the runner uses
+  `10.74.5.0/27`. Private DNS and managed-identity connectivity are
   prerequisites, not fallbacks.
 - Prefer `DefaultAzureCredential` and one repository-owned Foundry project/model configuration contract. If configuration names change, update bootstrap, tests, and deployment assets together rather than supporting parallel env-var sets.
 - Prefer LangGraph event streaming for runtime projections and telemetry. Use streamed graph outputs to derive stable SSE events instead of bypassing the graph runtime.

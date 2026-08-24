@@ -15,12 +15,21 @@ az bicep build --file "$data_roles_module" --stdout >/dev/null
 
 for expected in \
   "privateVnetAddressSpace = '10.74.0.0/16'" \
-  "foundryAgentSubnetPrefix = '10.74.0.0/24'" \
+  "foundryVnetAddressSpace = '10.76.0.0/16'" \
+  "foundryAgentSubnetPrefix = '10.76.0.0/24'" \
+  "foundryPrivateEndpointSubnetPrefix = '10.76.1.0/24'" \
   "containerAppsSubnetPrefix = '10.74.2.0/23'" \
   "privateEndpointSubnetPrefix = '10.74.4.0/24'" \
   "privateRunnerSubnetPrefix = '10.74.5.0/27'" \
   "scenario: 'agent'" \
   "useMicrosoftManagedNetwork: false" \
+  "foundryVnetBootstrap 'Microsoft.Network/virtualNetworks" \
+  "privateToFoundryVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings" \
+  "foundryToPrivateVnetPeeringBootstrap 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings" \
+  "foundryStoragePrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints" \
+  "foundryCosmosPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints" \
+  "foundrySearchPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints" \
+  "foundryContainerRegistryPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints" \
   "privateRunnerVmBootstrap 'Microsoft.Compute/virtualMachines" \
   "privateRunnerNatGatewayBootstrap 'Microsoft.Network/natGateways" \
   "purpose: 'runner-egress-only'" \
@@ -28,6 +37,11 @@ for expected in \
   "privateRunnerContainerAppsContributorBootstrap 'Microsoft.Authorization/roleAssignments" \
   "privateRunnerFoundryProjectManagerBootstrap 'Microsoft.Authorization/roleAssignments" \
   "privateRunnerLogAnalyticsReaderBootstrap 'Microsoft.Authorization/roleAssignments" \
+  "foundryAccountDiagnosticsBootstrap 'Microsoft.Insights/diagnosticSettings" \
+  "category: 'Audit'" \
+  "category: 'Trace'" \
+  "category: 'ManagedNetworkEvent'" \
+  "projectApplicationInsightsConnectionBootstrap 'Microsoft.CognitiveServices/accounts/projects/connections" \
   "privateRunnerDeploymentExecutorBootstrap 'Microsoft.Authorization/roleAssignments" \
   "privateRunnerBackendIdentityOperatorBootstrap 'Microsoft.Authorization/roleAssignments" \
   "privateRunnerFrontendIdentityOperatorBootstrap 'Microsoft.Authorization/roleAssignments" \
@@ -49,6 +63,9 @@ for expected in \
 done
 
 ! grep -Fq "publicNetworkAccess: 'Enabled'" "$template"
+! grep -Fq "category: 'RequestResponse'" "$template"
+! grep -Fq "projectContainerRegistryConnectionBootstrap" "$template"
+! grep -Fq "projectWorkspaceIdGuid" "$template"
 ! grep -Fq 'POSTGRES_OPERATOR_IP' "$template"
 grep -Fq "networkProfile:" "$template"
 grep -Fq "id: privateRunnerNicBootstrap!.id" "$template"

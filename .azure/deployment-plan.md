@@ -23,8 +23,10 @@ Insights observability.
   primary `eastus2` lane VNet.
 - Resource group: `rg-langgraph-ora-foundry-private`
 - AZD environment: `order-resolution-foundry-private`
-- VNet: `10.74.0.0/16`
-- Foundry subnet: `10.74.0.0/24`
+- Primary VNet: `10.74.0.0/16`
+- Foundry VNet: `10.76.0.0/16`
+- Foundry subnet: `10.76.0.0/24`
+- Foundry dependency endpoint subnet: `10.76.1.0/24`
 - Container Apps subnet: `10.74.2.0/23`
 - Private endpoint subnet: `10.74.4.0/24`
 - Private runner subnet: `10.74.5.0/27`
@@ -133,21 +135,26 @@ repeated pulls of its exact digest by the project identity from private
 `10.74.0.x` addresses. This rules out production-image inheritance and stable
 SDK-version drift.
 
-Azure Policy state now explains why `disableLocalAuth` could not be aligned
-with the Microsoft template: the inherited `MCAPSGovDeployPolicies` initiative
-applies the `cognitiveservicesdisablelocalauth` reference with a `Modify`
-effect. The next controlled diagnostic requires a temporary, resource-scoped
-exemption for only the Foundry account, followed by one official-control
-activation attempt with public network access still disabled. No exemption has
-been created without explicit governance authorization.
+The local-auth hypothesis is disproved. Both the known-good MAF private account
+and the failing LangGraph accounts have `disableLocalAuth=true` with public
+network access disabled. No policy exemption is required or justified.
 
-The current Subscription Owner cannot create that exemption: Azure returned
-`LinkedAuthorizationFailed` because the identity lacks
-`Microsoft.Authorization/policyAssignments/exempt/action` on the inherited
-management-group assignment. No eligible or active management-group PIM role
-is available to activate. A management-group policy administrator must create
-the scoped exemption or grant the required action before deployment can
-continue.
+The same standalone Microsoft Responses control became active and created a
+session in the existing MAF private account and in a fresh account injected
+into a new subnet in the MAF VNet. In the LangGraph VNet, it failed in the
+original project, a fresh project, and two fresh accounts on independent
+delegated `/24` subnets. Matching the MAF NAT, Cognitive Services service
+endpoint, NSG, project RBAC, project connections, and exact Storage, Cosmos DB,
+and Search dependencies did not resolve activation. The strongest failures
+returned `invalid_configuration` and request IDs
+`1e32f26f360f4fc0573cee5696f0a1df`,
+`b1d31ec65ad691240ea08a83b8754038`, and
+`53075aa912bf7ced00d9405fb0da07ef`.
+
+The blocker is isolated to Foundry's managed network-injection/service-link
+path for the LangGraph VNet even though ARM reports the account, capability
+hosts, service association, and subnet as `Succeeded`. Microsoft must inspect
+that service-side state before a production hosted version can be accepted.
 
 The source now preserves the official Storage role contract, removes the
 unnecessary per-version ACR role-assignment capability, and classifies hosted

@@ -34,7 +34,8 @@ Search private-endpoint VNet:
 | Reservation | CIDR | Policy |
 | --- | --- | --- |
 | BYO VNet | `10.74.0.0/16` | One isolated lane address space |
-| Foundry integration | `10.74.0.0/24` | Private Foundry integration |
+| Foundry integration | `10.76.0.0/24` | Private Foundry integration |
+| Foundry dependency endpoints | `10.76.1.0/24` | Hosted-compute dependency access |
 | Container Apps | `10.74.2.0/23` | External frontend and internal wrapper |
 | Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and approved services |
 | Private runner | `10.74.5.0/27` | Noninteractive automation |
