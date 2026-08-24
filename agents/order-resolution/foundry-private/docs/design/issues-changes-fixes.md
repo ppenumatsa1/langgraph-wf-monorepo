@@ -545,6 +545,19 @@ bootstrap, and excludes generated pytest scratch content.
   same module-resolution contract, and its script test rejects removing the
   working-directory change. A fresh release remains required because the
   failed release cannot provide atomic evaluation and telemetry evidence.
+- The next release reached Foundry evaluation and failed artifact upload with
+  `ResourceMsiTokenDoesntHavePermissionsOnStorage`. The project already had
+  unconditioned `Storage Blob Data Contributor` plus the Standard Agent
+  workspace-conditioned `Storage Blob Data Owner`, but evaluation artifacts
+  are not confined to `*-azureml-agent` containers. Current Microsoft Foundry
+  evaluation guidance requires unconditioned `Storage Blob Data Owner` for
+  both the Foundry account and project managed identities on the connected
+  storage account.
+- IaC now grants that resource-scoped owner role to both Foundry identities.
+  Runtime verification rejects missing, conditioned, or drifted assignments
+  before smoke/E2E/evaluation. Public storage access remains disabled; this
+  changes data-plane authorization only and does not weaken private
+  networking.
 
 ## Open implementation follow-through
 

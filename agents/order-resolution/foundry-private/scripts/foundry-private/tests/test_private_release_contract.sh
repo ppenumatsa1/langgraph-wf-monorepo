@@ -102,6 +102,8 @@ grep -Fq '"APP_ENV=foundry-private-wrapper"' "$scripts_dir/runner_deploy_runtime
 grep -Fq '"POSTGRES_POOL_MIN_SIZE=0"' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq '"POSTGRES_POOL_MAX_SIZE=2"' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq '.POSTGRES_POOL_MAX_IDLE_SECONDS == "15"' "$scripts_dir/runner_verify_runtime.sh"
+grep -Fq 'private evaluation requires unconditioned Storage Blob Data Owner for the Foundry ${identity_kind} identity' \
+  "$scripts_dir/runner_verify_runtime.sh"
 grep -Fq '"FOUNDRY_RESPONSES_ENDPOINT=$responses_endpoint"' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq 'FOUNDRY_HOSTED_RESPONSES_URL' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq 'select(.name == "FOUNDRY_RESPONSES_ENDPOINT")' "$scripts_dir/runner_verify_runtime.sh"

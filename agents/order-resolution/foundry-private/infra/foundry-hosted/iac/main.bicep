@@ -1583,6 +1583,11 @@ resource storageBlobDataContributorRole 'Microsoft.Authorization/roleDefinitions
   name: 'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
 }
 
+resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
+}
+
 resource storageAccountContributorRole 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   scope: subscription()
   name: '17d1049b-9a84-46fb-8f53-869881c3d3ab'
@@ -1886,6 +1891,16 @@ resource accountStorageBlobDataContributorBootstrap 'Microsoft.Authorization/rol
   scope: standardAgentStorageRoleScope
   properties: {
     roleDefinitionId: storageBlobDataContributorRole.id
+    principalId: foundryAccountBootstrap!.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource accountStorageBlobDataOwnerBootstrap 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (isFoundryConvergencePhase) {
+  name: guid(standardAgentStorageRoleScope.id, foundryAccountName, storageBlobDataOwnerRole.id)
+  scope: standardAgentStorageRoleScope
+  properties: {
+    roleDefinitionId: storageBlobDataOwnerRole.id
     principalId: foundryAccountBootstrap!.identity.principalId
     principalType: 'ServicePrincipal'
   }

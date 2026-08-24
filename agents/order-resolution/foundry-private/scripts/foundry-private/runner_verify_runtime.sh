@@ -23,6 +23,9 @@ agent_name="$(private_required_env_value HOSTED_AGENT_NAME)"
 project_endpoint="$(private_required_env_value AZURE_AI_PROJECT_ENDPOINT)"
 runtime_connection="$(private_required_env_value FOUNDRY_RUNTIME_CONNECTION_NAME)"
 responses_endpoint="$(private_required_env_value FOUNDRY_HOSTED_RESPONSES_URL)"
+foundry_account="$(private_required_env_value FOUNDRY_ACCOUNT_NAME)"
+foundry_project="$(private_required_env_value FOUNDRY_PROJECT_NAME)"
+storage_account="$(private_required_env_value STANDARD_AGENT_STORAGE_ACCOUNT_NAME)"
 python="$PRIVATE_ROOT_DIR/backend/.venv/bin/python"
 hosted_verifier="$SCRIPT_DIR/verify_hosted_agent.py"
 [[ -x "$python" ]] || private_die "private runner requires backend/.venv for hosted verification"
@@ -116,6 +119,46 @@ done
 jq -e --arg principal "$hosted_principal_id" '.principal_id == $principal' \
   <<<"$hosted_json" >/dev/null ||
   private_die "private hosted agent principal does not match the immutable deployment"
+
+foundry_api_version="2025-04-01-preview"
+foundry_account_id="/subscriptions/${subscription_id}/resourceGroups/${resource_group}/providers/Microsoft.CognitiveServices/accounts/${foundry_account}"
+foundry_project_id="${foundry_account_id}/projects/${foundry_project}"
+foundry_account_principal="$(
+  az rest --method get \
+    --url "https://management.azure.com${foundry_account_id}?api-version=${foundry_api_version}" \
+    --query 'identity.principalId' --output tsv
+)"
+foundry_project_principal="$(
+  az rest --method get \
+    --url "https://management.azure.com${foundry_project_id}?api-version=${foundry_api_version}" \
+    --query 'identity.principalId' --output tsv
+)"
+[[ -n "$foundry_account_principal" && -n "$foundry_project_principal" ]] ||
+  private_die "private Foundry account and project managed identities are required"
+
+storage_scope="/subscriptions/${subscription_id}/resourceGroups/${resource_group}/providers/Microsoft.Storage/storageAccounts/${storage_account}"
+storage_owner_role="/subscriptions/${subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b7e6dc6d-f1e8-4753-8033-0f276bb0955b"
+storage_assignments="$(
+  az rest --method get \
+    --url "https://management.azure.com${storage_scope}/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01"
+)"
+for identity in \
+  "account:${foundry_account_principal}" \
+  "project:${foundry_project_principal}"; do
+  identity_kind="${identity%%:*}"
+  principal_id="${identity#*:}"
+  jq -e \
+    --arg principal "$principal_id" \
+    --arg role "${storage_owner_role,,}" '
+      any(
+        .value[]?;
+        .properties.principalId == $principal
+        and (.properties.roleDefinitionId | ascii_downcase) == $role
+        and (.properties.condition // null) == null
+      )
+    ' <<<"$storage_assignments" >/dev/null ||
+    private_die "private evaluation requires unconditioned Storage Blob Data Owner for the Foundry ${identity_kind} identity"
+done
 
 jq -n \
   --arg backend "$backend_name" \

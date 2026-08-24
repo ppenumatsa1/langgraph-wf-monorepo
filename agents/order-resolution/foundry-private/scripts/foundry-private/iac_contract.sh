@@ -87,15 +87,20 @@ if grep -Fq "Order Resolution Private ACR Pull Assigner" "$template"; then
   private_die "private runner must not manage per-version hosted ACR assignments"
 fi
 grep -Fq "resource projectStorageBlobDataContributorBootstrap" "$template" ||
-  private_die "private Standard Agent setup requires account-scoped Storage Blob Data Contributor"
+  private_die "private Standard Agent setup requires project Storage Blob Data Contributor"
+grep -Fq "resource accountStorageBlobDataOwnerBootstrap" "$template" ||
+  private_die "private evaluation requires account Storage Blob Data Owner"
 grep -Fq "projectWorkspaceId: projectWorkspaceId" "$template" ||
-  private_die "private Standard Agent storage condition requires the raw Foundry workspace ID"
+  private_die "private Standard Agent storage role assignment requires the raw Foundry workspace ID"
 if grep -Fq "projectWorkspaceIdGuid" "$template"; then
-  private_die "private Standard Agent storage condition must not hyphenate the workspace ID"
+  private_die "private Standard Agent storage role assignment must not hyphenate the workspace ID"
 fi
-grep -Fq "StringLikeIgnoreCase \\'*-azureml-agent\\'" \
-  "$PRIVATE_AZD_DIR/iac/modules/standard-agent-data-role-assignments.bicep" ||
-  private_die "private Standard Agent setup requires the workspace-scoped Storage Blob Data Owner condition"
+data_roles_module="$PRIVATE_AZD_DIR/iac/modules/standard-agent-data-role-assignments.bicep"
+grep -Fq "resource projectStorageBlobDataOwner" "$data_roles_module" ||
+  private_die "private evaluation requires project Storage Blob Data Owner"
+if grep -Fq "condition:" "$data_roles_module"; then
+  private_die "private evaluation Storage Blob Data Owner must not exclude evaluation artifact containers"
+fi
 grep -Fq "param standardAgentSearchLocation string = 'westus3'" "$template" ||
   private_die "private Search must avoid the documented East US 2 capacity constraint"
 grep -Fq "location: standardAgentSearchLocation" "$template" ||

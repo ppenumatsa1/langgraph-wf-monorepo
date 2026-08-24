@@ -266,3 +266,15 @@ added to `PYTHONPATH`. The public and Azure-hosted evaluator scripts already
 enforce `cd "$ROOT_DIR/backend"` before module execution; the private lane now
 uses the same contract and tests it. Future evaluator runners must preserve an
 explicit module root rather than relying on the caller's working directory.
+
+## 2026-08-24 - Cross-lane Foundry evaluation storage role
+
+Private evaluation proved that the Standard Agent Setup storage roles are not
+by themselves sufficient for Foundry evaluation artifact transport. The
+workspace-conditioned `Storage Blob Data Owner` assignment covers agent
+containers, while evaluation uses additional artifact containers. Current
+Microsoft Foundry guidance requires unconditioned, storage-account-scoped
+`Storage Blob Data Owner` for both the Foundry account and project managed
+identities. Lanes that run Foundry evaluation must verify both effective
+assignments before accepting deployment verification; public network access
+does not need to be enabled.
