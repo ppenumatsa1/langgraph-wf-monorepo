@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from app.core.database import PostgresDatabase
+from app.core.database import PostgresDatabase, postgres_pool_config
 
 
 def test_database_url_normalizes_psycopg_dialect(monkeypatch) -> None:
@@ -52,6 +52,58 @@ def test_foundry_private_runtime_requires_external_schema_management(monkeypatch
 
     with pytest.raises(RuntimeError, match="DB_SCHEMA_MANAGED_EXTERNALLY=true"):
         _ = PostgresDatabase().database_url
+
+
+def test_postgres_pool_config_supports_zero_idle_connections(monkeypatch) -> None:
+    monkeypatch.setenv("POSTGRES_POOL_MIN_SIZE", "0")
+    monkeypatch.setenv("POSTGRES_POOL_MAX_SIZE", "1")
+    monkeypatch.setenv("POSTGRES_POOL_MAX_IDLE_SECONDS", "15")
+    monkeypatch.setenv("POSTGRES_APPLICATION_NAME", "order-resolution-private-hosted")
+
+    config = postgres_pool_config()
+
+    assert config.min_size == 0
+    assert config.max_size == 1
+    assert config.max_idle_seconds == 15
+    assert config.application_name == "order-resolution-private-hosted"
+
+
+def test_postgres_pool_config_rejects_maximum_below_minimum(monkeypatch) -> None:
+    monkeypatch.setenv("POSTGRES_POOL_MIN_SIZE", "2")
+    monkeypatch.setenv("POSTGRES_POOL_MAX_SIZE", "1")
+
+    with pytest.raises(
+        ValueError,
+        match="POSTGRES_POOL_MAX_SIZE must be at least POSTGRES_POOL_MIN_SIZE",
+    ):
+        postgres_pool_config()
+
+
+def test_database_applies_bounded_pool_config(monkeypatch) -> None:
+    captured: dict[str, object] = {}
+
+    class _Pool:
+        def __init__(self, **kwargs):
+            captured.update(kwargs)
+
+        def close(self):
+            return None
+
+    monkeypatch.setenv("POSTGRES_POOL_MIN_SIZE", "0")
+    monkeypatch.setenv("POSTGRES_POOL_MAX_SIZE", "2")
+    monkeypatch.setenv("POSTGRES_POOL_MAX_IDLE_SECONDS", "15")
+    monkeypatch.setenv("POSTGRES_APPLICATION_NAME", "order-resolution-private-wrapper")
+    monkeypatch.setattr("app.core.database.ConnectionPool", _Pool)
+
+    database = PostgresDatabase()
+    database.get_pool()
+
+    assert captured["min_size"] == 0
+    assert captured["max_size"] == 2
+    assert captured["max_idle"] == 15
+    connection_kwargs = captured["kwargs"]
+    assert isinstance(connection_kwargs, dict)
+    assert connection_kwargs["application_name"] == "order-resolution-private-wrapper"
 
 
 def test_runtime_schema_verification_is_read_only(monkeypatch) -> None:

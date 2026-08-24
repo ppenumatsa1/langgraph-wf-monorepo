@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import atexit
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from threading import RLock
 from urllib.parse import parse_qs, urlsplit
@@ -13,6 +14,52 @@ DEFAULT_DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/langgraph_
 
 
 _SECURE_SSL_MODES = {"require", "verify-ca", "verify-full"}
+
+
+@dataclass(frozen=True)
+class PostgresPoolConfig:
+    min_size: int
+    max_size: int
+    max_idle_seconds: float
+    application_name: str
+
+
+def _env_int(name: str, default: int, *, minimum: int) -> int:
+    raw_value = os.getenv(name, str(default)).strip()
+    try:
+        value = int(raw_value)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer") from exc
+    if value < minimum:
+        raise ValueError(f"{name} must be at least {minimum}")
+    return value
+
+
+def _env_float(name: str, default: float, *, minimum: float) -> float:
+    raw_value = os.getenv(name, str(default)).strip()
+    try:
+        value = float(raw_value)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a number") from exc
+    if value < minimum:
+        raise ValueError(f"{name} must be at least {minimum}")
+    return value
+
+
+def postgres_pool_config() -> PostgresPoolConfig:
+    min_size = _env_int("POSTGRES_POOL_MIN_SIZE", 1, minimum=0)
+    max_size = _env_int("POSTGRES_POOL_MAX_SIZE", 10, minimum=1)
+    if max_size < min_size:
+        raise ValueError("POSTGRES_POOL_MAX_SIZE must be at least POSTGRES_POOL_MIN_SIZE")
+    application_name = os.getenv("POSTGRES_APPLICATION_NAME", "langgraph-order-resolution").strip()
+    if not application_name:
+        raise ValueError("POSTGRES_APPLICATION_NAME must not be empty")
+    return PostgresPoolConfig(
+        min_size=min_size,
+        max_size=max_size,
+        max_idle_seconds=_env_float("POSTGRES_POOL_MAX_IDLE_SECONDS", 600.0, minimum=1.0),
+        application_name=application_name,
+    )
 
 
 def is_connection_placeholder(value: str) -> bool:
@@ -62,12 +109,18 @@ class PostgresDatabase:
     def get_pool(self) -> ConnectionPool:
         with self._lock:
             if self._pool is None:
+                config = postgres_pool_config()
                 self._pool = ConnectionPool(
                     conninfo=self.database_url,
-                    min_size=1,
-                    max_size=10,
+                    min_size=config.min_size,
+                    max_size=config.max_size,
+                    max_idle=config.max_idle_seconds,
                     open=True,
-                    kwargs={"autocommit": True, "row_factory": dict_row},
+                    kwargs={
+                        "application_name": config.application_name,
+                        "autocommit": True,
+                        "row_factory": dict_row,
+                    },
                 )
             return self._pool
 

@@ -95,7 +95,13 @@ grep -Fq 'acr config authentication-as-arm show' "$scripts_dir/runner_acr_packag
 grep -Fq 'range(120)' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq 'matching_active_version' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq '"APP_ENV": "foundry-private-hosted"' "$scripts_dir/deploy_hosted_agent.py"
+grep -Fq '"POSTGRES_POOL_MIN_SIZE": "0"' "$scripts_dir/deploy_hosted_agent.py"
+grep -Fq '"POSTGRES_POOL_MAX_SIZE": "1"' "$scripts_dir/deploy_hosted_agent.py"
+grep -Fq '"POSTGRES_POOL_MAX_IDLE_SECONDS": "15"' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq '"APP_ENV=foundry-private-wrapper"' "$scripts_dir/runner_deploy_runtime.sh"
+grep -Fq '"POSTGRES_POOL_MIN_SIZE=0"' "$scripts_dir/runner_deploy_runtime.sh"
+grep -Fq '"POSTGRES_POOL_MAX_SIZE=2"' "$scripts_dir/runner_deploy_runtime.sh"
+grep -Fq '.POSTGRES_POOL_MAX_IDLE_SECONDS == "15"' "$scripts_dir/runner_verify_runtime.sh"
 grep -Fq '"FOUNDRY_RESPONSES_ENDPOINT=$responses_endpoint"' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq 'FOUNDRY_HOSTED_RESPONSES_URL' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq 'select(.name == "FOUNDRY_RESPONSES_ENDPOINT")' "$scripts_dir/runner_verify_runtime.sh"
@@ -154,6 +160,26 @@ printf '{"conversation_ids":["one","two","three"]}\n' |
   jq -e '.conversation_ids | (type == "array" and length == 3 and (unique | length) == 3)' >/dev/null
 grep -Fq 'runner_bootstrap' "$scripts_dir/release.sh"
 grep -Fq 'browser_e2e' "$scripts_dir/release.sh"
+grep -Fq 'PLAYWRIGHT_CASE_DELAY_MS=20000' "$scripts_dir/runner_browser_e2e.sh"
+grep -Fq -- '--workers=1' "$scripts_dir/runner_browser_e2e.sh"
+grep -Fq 'tail -c 4000' "$scripts_dir/runner_browser_e2e.sh"
+grep -Fq 'Number.isFinite(caseDelayMs)' \
+  "$root_dir/scripts/playwright/tests/workflow.e2e.spec.ts"
+grep -Fq 'Number.isFinite(value)' "$root_dir/scripts/playwright/playwright.config.ts"
+redacted="$(
+  bash -c '
+    source "$1"
+    printf "%s\n" \
+      "MCP_BEARER_TOKEN=browser-token-value" \
+      "MCP_API_KEY=browser-key-value" \
+      "Password: browser-password-value" |
+      private_redact_stream
+  ' _ "$scripts_dir/common.sh"
+)"
+grep -Fq 'MCP_BEARER_TOKEN=[REDACTED]' <<<"$redacted"
+grep -Fq 'MCP_API_KEY=[REDACTED]' <<<"$redacted"
+grep -Fq 'Password=[REDACTED]' <<<"$redacted"
+! grep -Eq 'browser-(token|key|password)-value' <<<"$redacted"
 grep -Fq 'evaluation' "$scripts_dir/release.sh"
 grep -Fq 'telemetry' "$scripts_dir/release.sh"
 grep -Fq 'runner_exec.sh" telemetry' "$scripts_dir/telemetry.sh"

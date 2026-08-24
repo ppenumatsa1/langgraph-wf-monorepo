@@ -29,7 +29,9 @@ browser-facing public endpoint.
   Approval UUID records are an idempotent audit projection, not a second copy
   of authoritative workflow state.
 - The `AsyncPostgresSaver` pool is an app-lifetime singleton shared by graph
-  execution rather than created per request.
+  execution rather than created per request. Each wrapper replica and Foundry
+  session is a separate app lifetime, so production pools use a zero idle
+  floor, short idle lifetime, bounded maxima, and distinct application names.
 - Stable browser API and SSE event names:
   `workflow.stage`, `tool.call`, `checkpoint.created`, `hitl.request`,
   `hitl.response`, and `workflow.output`.
@@ -103,6 +105,8 @@ Use the design ledger for the explicit non-claims and implementation boundary.
   not create resources, RBAC assignments, or retained-state changes.
 - Runtime PostgreSQL access stays least-privilege: connect, schema usage,
   required DML, and required sequence usage only.
+- Release verification rejects pool settings that could retain unbounded idle
+  connections across Foundry conversation sessions.
 - Native checkpoint tables may contain workflow PII needed for resume. Their
   retention, access, and export handling must stay more restrictive than
   redacted browser projections and general audit summaries.

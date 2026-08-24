@@ -82,6 +82,9 @@ order-resolution/
 - Keep `AsyncPostgresSaver` responsibilities separate from audit projections:
   the checkpointer stores graph state; projections store history and operator
   views.
+- Keep synchronous audit and asynchronous checkpoint pools on one validated
+  configuration contract. Hosted sessions must shrink to zero idle
+  connections and expose a distinct PostgreSQL application name.
 - Treat generated hosted package context as deployment output, not source of
   truth. Sync it from canonical backend sources before packaging.
 - Keep private Foundry, PostgreSQL, and ACR access behind private endpoints and

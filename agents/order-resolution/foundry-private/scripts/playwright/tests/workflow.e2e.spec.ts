@@ -4,7 +4,10 @@ const HIGH_RISK_DELAYED_MESSAGE =
   "Order ORD-1009 is delayed by 5 days. I need compensation.";
 const LOW_RISK_LATE_MESSAGE = "Order ORD-1001 was late by one day.";
 const DAMAGED_ITEM_MESSAGE = "Order ORD-1001 arrived broken.";
-const caseDelayMs = Number(process.env.PLAYWRIGHT_CASE_DELAY_MS ?? 0);
+const caseDelayMs = Number(process.env.PLAYWRIGHT_CASE_DELAY_MS ?? "0");
+if (!Number.isFinite(caseDelayMs) || caseDelayMs < 0) {
+  throw new Error("PLAYWRIGHT_CASE_DELAY_MS must be a non-negative number");
+}
 
 async function delayForHostedModelQuota() {
   if (caseDelayMs > 0) {

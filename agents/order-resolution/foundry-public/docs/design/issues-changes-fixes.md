@@ -231,3 +231,29 @@ Stop the migration or release if it:
 The release evidence is stored under the matching ignored
 `.artifacts/releases/` directory and contains no credentials or resolved
 database URLs.
+
+## 2026-08-24 - Cross-lane Foundry session pool lifecycle learning
+
+The private LangGraph lane exposed a PostgreSQL connection-lifecycle risk that
+also applies to Foundry-hosted designs. A Foundry Responses conversation can
+retain an idle hosted compute session, so an "application-lifetime" pool is
+one pool per hosted session process, not one pool for the entire agent fleet.
+LangGraph also owns both the synchronous audit repository pool and the
+`AsyncPostgresSaver` pool.
+
+The MAF private reference did not record this as an issue. It used only one
+synchronous `ConnectionPool(min_size=1, max_size=10)`, created three fresh
+hosted-E2E conversations, and retried transient hosted failures with 15-second
+cooling intervals. The LangGraph private release combined hosted E2E with
+several browser conversations and retained two pools per process, exposing the
+runtime role's connection limit. This comparison identifies a latent
+lifecycle difference rather than a regression in HITL behavior.
+
+Adopt this cross-lane rule for future public releases: production pool sizing
+must account for wrapper replicas, concurrent Foundry session processes, and
+both LangGraph persistence pools. Hosted-session pools should permit a zero
+idle floor, use a short idle lifetime, expose bounded maxima, and set distinct
+PostgreSQL application names for operational attribution. Deployment
+verification must reject drift from the lane's chosen limits. This entry
+records the learning only; it does not replace fresh public-lane release
+evidence.

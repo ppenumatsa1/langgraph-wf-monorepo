@@ -52,6 +52,15 @@ jq -e '
 ' <<<"$backend_json" >/dev/null ||
   private_die "private backend database variables must use the runtime secret reference"
 jq -e '
+  [.properties.template.containers[0].env[]? | {key:.name,value:(.value // "")}]
+  | from_entries
+  | .POSTGRES_POOL_MIN_SIZE == "0"
+  and .POSTGRES_POOL_MAX_SIZE == "2"
+  and .POSTGRES_POOL_MAX_IDLE_SECONDS == "15"
+  and .POSTGRES_APPLICATION_NAME == "order-resolution-private-wrapper"
+' <<<"$backend_json" >/dev/null ||
+  private_die "private backend PostgreSQL pools must remain bounded and idle-shrinking"
+jq -e '
   [
     .properties.template.containers[0].env[]?
     | select(.name == "APPLICATIONINSIGHTS_CONNECTION_STRING")

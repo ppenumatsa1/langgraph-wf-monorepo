@@ -105,4 +105,6 @@ policy, MCP/RAG, prompt, reviewer-comment, or checkpoint-state payloads.
 
 Hosted approval requests travel through the internal wrapper and private
 PostgreSQL projections. The browser never calls private Foundry or PostgreSQL
-directly.
+directly. A waiting approval may outlive active hosted compute; zero-idle
+database pools release connections without changing the durable checkpoint or
+the requirement to resume only the matching pending checkpoint.

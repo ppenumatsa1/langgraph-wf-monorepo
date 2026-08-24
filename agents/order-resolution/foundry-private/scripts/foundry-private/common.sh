@@ -30,6 +30,12 @@ private_require_directory() {
     private_die "required directory is missing: $1"
 }
 
+private_redact_stream() {
+  sed -E \
+    -e 's#postgresql(\+psycopg)?://[^[:space:]]+#postgresql://[REDACTED]#g' \
+    -e 's#([Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Tt][Oo][Kk][Ee][Nn]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Bb][Ee][Aa][Rr][Ee][Rr]|[Aa][Pp][Ii][_-]?[Kk][Ee][Yy])[=:][[:space:]]*[^[:space:]]+#\1=[REDACTED]#g'
+}
+
 private_azd() {
   AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd "$@"
 }

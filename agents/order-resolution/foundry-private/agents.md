@@ -29,7 +29,9 @@ in this repository.
   approval UUID table is an idempotent audit projection and reconciliation
   aid, not a duplicate source of authoritative action, order, or amount state.
 - The `AsyncPostgresSaver` connection pool must be created once per app
-  lifetime and reused across requests.
+  lifetime and reused across requests. Treat each wrapper replica and Foundry
+  conversation session as a separate process lifetime; keep both synchronous
+  and asynchronous pools bounded, idle-shrinking, and operationally named.
 - PostgreSQL schema DDL is administrator-owned. Production runtimes set
   `DB_SCHEMA_MANAGED_EXTERNALLY=true`; the runtime credential remains limited
   to required DML and sequence usage.

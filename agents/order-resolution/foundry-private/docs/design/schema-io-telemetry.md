@@ -89,6 +89,10 @@ CopilotKit here means `@copilotkit/react-core`, not the GitHub Copilot SDK.
 
 - An app-lifetime singleton `AsyncPostgresSaver` pool owns thread-scoped graph
   checkpoint persistence for LangGraph execution and resume.
+- "App lifetime" is process-local: each wrapper replica and retained Foundry
+  session has separate synchronous audit and asynchronous checkpoint pools.
+  Production configuration uses a zero idle floor, short idle lifetime,
+  bounded maxima, and distinct PostgreSQL application names.
 - Separate application audit projections own workflow runs, workflow events,
   approvals, transcripts, idempotency records, and release-evidence metadata.
 - The native checkpoint is the workflow-state source of truth.

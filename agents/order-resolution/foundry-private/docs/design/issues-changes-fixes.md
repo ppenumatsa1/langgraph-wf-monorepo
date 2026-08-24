@@ -493,6 +493,48 @@ bootstrap, and excludes generated pytest scratch content.
   the Linux/amd64 image and the attestation entry. Backend and frontend
   packaging retain their proven single-manifest Docker path.
 
+### 2026-08-24 - Foundry session PostgreSQL connection exhaustion
+
+- The first Azure browser run was initially misread as automatic HITL approval
+  because its failure snapshot showed a completed high-risk conversation.
+  Application Insights request evidence proved the headless browser had
+  explicitly posted `/api/hitl/respond`; a standalone high-risk browser flow
+  then passed. HITL parsing, checkpoint matching, and explicit browser approval
+  were not the failure.
+- Later browser starts returned wrapper HTTP 500 responses backed by Foundry
+  `424 Failed Dependency`. A failed hosted session log exposed the actionable
+  cause: `FATAL: too many connections for role
+  "order_resolution_runtime"`. The least-privilege role correctly retained its
+  20-connection limit, while 16 connections were already in use.
+- A Foundry Responses conversation can retain an idle hosted compute session.
+  The previous defaults kept at least one connection open and allowed up to ten
+  in both the synchronous audit repository pool and the LangGraph
+  `AsyncPostgresSaver` pool. The internal wrapper owned the same two pools.
+  Repeated hosted and browser conversations therefore accumulated idle
+  connections across isolated processes.
+- The MAF private reference contains no recorded connection-pool exhaustion
+  issue and uses one synchronous `ConnectionPool(min_size=1, max_size=10)`.
+  Its protected hosted E2E creates only three fresh conversations and retries
+  transient 404/409/429/5xx responses for up to twenty 15-second intervals.
+  LangGraph adds a second app-lifetime asynchronous checkpoint pool and this
+  release ran hosted E2E plus several fresh browser conversations back to
+  back. The MAF shape therefore had roughly half the per-session connection
+  floor and enough retry/cooling time to avoid exposing this latent lifecycle
+  risk; it is not evidence that unbounded idle pools are safe.
+- Both LangGraph pools now share one validated configuration contract. Hosted
+  sessions use a zero idle floor, one connection maximum per pool, a 15-second
+  idle lifetime, and an identifiable PostgreSQL application name. The wrapper
+  uses a zero idle floor, two connections maximum per pool, the same idle
+  lifetime, and its own application name. Deployment and runtime verification
+  fail if these settings drift.
+- Browser release execution is explicitly single-worker and paced for hosted
+  session turnover. On failure it retains a bounded local log and emits only a
+  sanitized tail instead of suppressing all Playwright diagnostics.
+- All 36 retained idle diagnostic Foundry sessions were stopped during diagnosis.
+  A fresh immutable deployment and complete release rerun remain required
+  before claiming the connection remediation or downstream browser,
+  evaluation, and telemetry gates as accepted.
+
 ## Open implementation follow-through
 
 1. Build and deploy a fresh production hosted image from the exact committed

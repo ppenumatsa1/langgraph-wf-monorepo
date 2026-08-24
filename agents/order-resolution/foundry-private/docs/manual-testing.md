@@ -58,6 +58,8 @@ Verify:
 - same-origin frontend `/api` calls return JSON or SSE rather than HTML fallbacks
 - telemetry and evaluation use fresh release-window evidence only
 - Application Insights contains correlated workflow, Foundry, and HITL spans
+- repeated fresh conversations do not produce `too many connections`, Foundry
+  424/500 responses, or a retained hosted-session connection floor
 - the wrapper, Foundry, PostgreSQL, ACR, and runner are not browser reachable
 - no private dependency check falls back to a public endpoint
 

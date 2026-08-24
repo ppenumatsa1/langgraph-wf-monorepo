@@ -24,6 +24,9 @@
   transcripts, idempotency keys, and release evidence
 - TLS, private endpoint, private DNS, managed identity, and least-privilege
   runtime grants for hosted PostgreSQL access
+- `psycopg_pool` with zero-idle, short-lived, bounded pools for each wrapper
+  replica and Foundry hosted session; application names distinguish both
+  runtime surfaces in `pg_stat_activity`
 
 ## Integration and hosting
 

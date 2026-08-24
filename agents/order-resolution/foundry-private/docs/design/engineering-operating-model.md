@@ -62,7 +62,9 @@ identity, and least-privilege RBAC are mandatory prerequisites.
 - Audit projections must not duplicate authoritative action, order, or amount
   state.
 - `AsyncPostgresSaver` pooling is an application-lifetime singleton resource,
-  not a per-request dependency.
+  not a per-request dependency. Because each wrapper replica and Foundry
+  session is a separate application process, both persistence pools must be
+  bounded and shrink to zero idle connections in hosted execution.
 - `checkpoint.created` and `hitl.request` are emitted in approval preparation,
   not replayed from the resumed interrupt node.
 - Production schema DDL stays administrator-owned and production runtime uses

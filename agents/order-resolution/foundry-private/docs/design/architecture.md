@@ -121,6 +121,9 @@ policy and HITL enforcement.
   business workflow.
 - LangGraph owns the ordered business graph.
 - `AsyncPostgresSaver` owns authoritative graph resume state.
+- Every wrapper replica and retained Foundry session owns separate synchronous
+  audit and asynchronous checkpoint pools. Hosted pools therefore keep zero
+  idle connections, a short idle lifetime, and bounded maxima.
 - Audit projections own browser history, approvals, replay, and evidence, but
   must not duplicate authoritative action, order, or amount state.
 - Foundry conversation state and PostgreSQL graph state are separate concerns.

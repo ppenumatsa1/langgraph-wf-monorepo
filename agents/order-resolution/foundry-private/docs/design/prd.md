@@ -77,6 +77,9 @@ public endpoints are not fallback paths.
     `Command(resume=...)`; deployment gates cannot bypass it.
 12. Release validation enforces least-privilege PostgreSQL access, immutable
     packaging, trace-age-aware evaluation, and evidence integrity.
+13. Repeated Foundry conversations do not exhaust the runtime-role connection
+    budget; wrapper and hosted pools are bounded, idle-shrinking, and verified
+    from deployed configuration.
 
 ## Delivery contract
 

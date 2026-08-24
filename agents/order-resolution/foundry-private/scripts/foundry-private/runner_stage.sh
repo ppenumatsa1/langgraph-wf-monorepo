@@ -69,10 +69,7 @@ mkdir -p "$error_dir"
 chmod 700 "$error_dir"
 if ! details="$("$stage_script" "$stage" 2>"$error_log")"; then
   printf 'Private runner stage failed: %s\n' "$stage" >&2
-  tail -c 1500 "$error_log" |
-    sed -E \
-      -e 's#postgresql(\+psycopg)?://[^[:space:]]+#postgresql://[REDACTED]#g' \
-      -e 's#([Pp]assword|[Tt]oken|[Ss]ecret)[=:][^[:space:]]+#\1=[REDACTED]#g' >&2
+  tail -c 1500 "$error_log" | private_redact_stream >&2
   exit 1
 fi
 details="$(jq -c . <<<"$details")"

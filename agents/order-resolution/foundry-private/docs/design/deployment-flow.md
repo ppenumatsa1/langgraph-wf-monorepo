@@ -173,6 +173,12 @@ Local timing artifacts help operators but do not replace reviewed evidence.
 | Internal wrapper | Consume runtime URL through secret reference and private DNS | Receive administrator URL |
 | Hosted Foundry runtime | Resolve runtime URL only through the project `CustomKeys` placeholder | Persist resolved URL in metadata or evidence |
 
+Deployment sets and verifies separate PostgreSQL application names for the
+wrapper and hosted runtime. Wrapper pools are bounded to two connections each;
+hosted-session pools are bounded to one connection each. Both use a zero idle
+floor and 15-second idle lifetime so retained Foundry sessions do not consume
+the runtime role's connection budget indefinitely.
+
 ## Stop conditions
 
 Stop the release if:
@@ -183,6 +189,8 @@ Stop the release if:
 - the runner is outside the reserved subnet or lacks required identity/RBAC;
 - private DNS or endpoint approval is missing;
 - runtime startup requires DDL or broader database privileges;
+- wrapper or hosted pool settings are missing, unbounded, or retain a nonzero
+  idle connection floor;
 - package acquisition bypasses approved feeds;
 - hosted package output is stale relative to canonical source;
 - any image is not pinned by immutable digest;

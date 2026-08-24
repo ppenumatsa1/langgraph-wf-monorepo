@@ -58,6 +58,13 @@ def verify_version_metadata(
         "schema_managed_externally": (
             str(environment_variables.get("DB_SCHEMA_MANAGED_EXTERNALLY", "")).lower() == "true"
         ),
+        "bounded_postgres_pools": (
+            environment_variables.get("POSTGRES_POOL_MIN_SIZE") == "0"
+            and environment_variables.get("POSTGRES_POOL_MAX_SIZE") == "1"
+            and environment_variables.get("POSTGRES_POOL_MAX_IDLE_SECONDS") == "15"
+            and environment_variables.get("POSTGRES_APPLICATION_NAME")
+            == "order-resolution-private-hosted"
+        ),
         "telemetry_content_redacted": (
             str(environment_variables.get("OTEL_RECORD_CONTENT", "")).lower() == "false"
             and str(environment_variables.get("TRACE_EVALUATION_RECORD_CONTENT", "")).lower()

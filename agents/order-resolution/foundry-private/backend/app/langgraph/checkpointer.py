@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import asyncio
-import os
 from typing import Any, Protocol
 
+from app.core.database import postgres_pool_config
 from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 
@@ -31,12 +31,15 @@ class PostgresCheckpointerFactory:
         async with self._lock:
             if self._saver is not None:
                 return self._saver
+            config = postgres_pool_config()
             pool = AsyncConnectionPool(
                 conninfo=self._database_url,
-                min_size=max(1, int(os.getenv("LANGGRAPH_POOL_MIN_SIZE", "1"))),
-                max_size=max(1, int(os.getenv("LANGGRAPH_POOL_MAX_SIZE", "10"))),
+                min_size=config.min_size,
+                max_size=config.max_size,
+                max_idle=config.max_idle_seconds,
                 open=False,
                 kwargs={
+                    "application_name": config.application_name,
                     "autocommit": True,
                     "prepare_threshold": 0,
                     "row_factory": dict_row,

@@ -102,6 +102,11 @@ For the hosted wrapper path:
    for that thread.
 6. Approval or rejection resumes the same thread and graph state.
 
+After an invocation becomes idle, its hosted-session database pools shrink to
+zero rather than retaining a connection for the lifetime of the Foundry
+conversation. This preserves the runtime role's bounded connection budget
+across repeated browser and hosted-E2E conversations.
+
 ## Stable event contract
 
 These native event names remain stable for frontend and test consumers:

@@ -76,6 +76,10 @@ case "$stage" in
         "RUNTIME_DATABASE_URL=secretref:database-url" \
         "DB_AUTH_MODE=password" \
         "DB_SCHEMA_MANAGED_EXTERNALLY=true" \
+        "POSTGRES_POOL_MIN_SIZE=0" \
+        "POSTGRES_POOL_MAX_SIZE=2" \
+        "POSTGRES_POOL_MAX_IDLE_SECONDS=15" \
+        "POSTGRES_APPLICATION_NAME=order-resolution-private-wrapper" \
         "AZURE_CLIENT_ID=$backend_client_id" \
         "AZURE_TOKEN_CREDENTIALS=prod" \
         "AZURE_AI_PROJECT_ENDPOINT=$project_endpoint" \
