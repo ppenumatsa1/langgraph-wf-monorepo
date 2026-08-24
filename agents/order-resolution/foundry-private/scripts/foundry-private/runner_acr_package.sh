@@ -8,6 +8,8 @@ source "$SCRIPT_DIR/common.sh"
 for command in az cp docker find git jq tar; do
   private_require_command "$command"
 done
+docker buildx version >/dev/null ||
+  private_die "private ACR packaging requires Docker Buildx"
 private_require_target
 private_assert_clean_source
 
@@ -84,14 +86,37 @@ build_image() {
   local repository="$2"
   local dockerfile="$3"
   local context="$4"
-  local digest image
+  local digest image manifest
   local tagged_image="${registry_endpoint}/${repository}:${image_tag}"
-  docker build --file "$dockerfile" --tag "$tagged_image" "$context" >/dev/null
-  docker push "$tagged_image" >/dev/null
+  if [[ "$component" == "hosted_agent" ]]; then
+    docker buildx build \
+      --file "$dockerfile" \
+      --platform linux/amd64 \
+      --provenance=true \
+      --tag "$tagged_image" \
+      --push \
+      "$context" >/dev/null
+  else
+    docker build --file "$dockerfile" --tag "$tagged_image" "$context" >/dev/null
+    docker push "$tagged_image" >/dev/null
+  fi
   digest="$(az acr repository show --subscription "$subscription_id" --name "$registry_name" --image "${repository}:${image_tag}" --query digest --output tsv)"
   [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]] ||
     private_die "$component ACR image did not resolve to an immutable digest"
   image="${registry_endpoint}/${repository}@${digest}"
+  if [[ "$component" == "hosted_agent" ]]; then
+    manifest="$(docker manifest inspect --verbose "$image")"
+    jq -e '
+      type == "array"
+      and any(.[];
+        .Descriptor.platform.os == "linux"
+        and .Descriptor.platform.architecture == "amd64")
+      and any(.[];
+        .Descriptor.platform.os == "unknown"
+        and .Descriptor.platform.architecture == "unknown")
+    ' <<<"$manifest" >/dev/null ||
+      private_die "hosted agent image must be an amd64 OCI index with BuildKit provenance"
+  fi
   printf '%s' "$image"
 }
 

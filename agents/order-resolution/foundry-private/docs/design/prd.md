@@ -36,7 +36,7 @@ private endpoint.
 | Foundry integration | `10.76.0.0/24`, dedicated network injection |
 | Foundry dependency endpoints | `10.76.1.0/24`, lane-owned private dependencies |
 | Container Apps | `10.74.2.0/23`; external frontend and internal wrapper |
-| Private endpoints | `10.74.4.0/24` for Foundry, PostgreSQL, ACR, and approved services |
+| Private endpoints | `10.74.4.0/24` for Foundry, PostgreSQL, and approved application-side services |
 | Private runner | `10.74.5.0/27`, no public administrative ingress |
 | Search private endpoint | `10.75.0.0/27`, same-region with Search and globally peered to the primary VNet |
 | DNS and identity | Private DNS zones/links, managed identity, and least-privilege RBAC are mandatory |

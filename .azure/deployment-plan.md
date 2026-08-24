@@ -1,6 +1,6 @@
 # Order Resolution Foundry-Private Deployment Plan
 
-**Status:** Blocked on Foundry hosted-compute activation
+**Status:** Hosted image publication root cause fixed; full release pending
 **Approval source:** The user approved the Foundry-private Order Resolution
 plan and requested autonomous implementation through local proof, IaC,
 deployment, smoke, E2E, evaluations, telemetry, evidence, review, and commit.
@@ -109,59 +109,25 @@ enabled.
 
 ## Live deployment status
 
-The isolated Azure infrastructure, private endpoints and DNS, account and
-project capability hosts, model deployments, private runner, PostgreSQL
-bootstrap, immutable ACR packaging, and backend/frontend deployments are
-complete. The remaining release stages are blocked because Foundry fails every
-hosted version before creating a session.
+The isolated Azure infrastructure, fresh `10.76.0.0/16` Foundry VNet, private
+endpoints and DNS, capability hosts, model deployments, private runner,
+PostgreSQL bootstrap, immutable ACR packaging, and backend/frontend deployments
+are complete. The clean Foundry VNet removed the original managed
+network-injection blocker.
 
-The blocker is reproduced with immutable control images that use Microsoft's
-official `azure-ai-agentserver-responses` host pattern and have no LangGraph,
-PostgreSQL, runtime connection, telemetry override, or application
-initialization. Control versions 4 and 5 failed after successful private ACR
-pulls, including after:
+The remaining hosted failure was isolated to image publication. Working images
+were OCI indexes with a Linux/amd64 manifest and BuildKit provenance
+attestation; runner-built images were bare OCI manifests. A one-entry index
+around a rejected manifest still failed, while the same official control built
+with `docker buildx build --platform linux/amd64 --provenance=true --push`
+became active as `order-resolution-buildx-control:1`.
 
-- applying the current Standard Agent account-scoped Storage data roles;
-- reconciling the project capability host through `2025-04-01-preview`;
-- verifying both capability hosts are `Succeeded`;
-- verifying account network injection targets the dedicated delegated subnet;
-- verifying the project host references the expected private Storage, Cosmos
-  DB, and Search connections.
-
-Standalone control version 6 also failed using Microsoft's current sample
-Docker shape and exact sample prerelease SDK versions installed through the
-approved Microsoft feed. Private-runner Log Analytics queries confirmed
-repeated pulls of its exact digest by the project identity from private
-`10.74.0.x` addresses. This rules out production-image inheritance and stable
-SDK-version drift.
-
-The local-auth hypothesis is disproved. Both the known-good MAF private account
-and the failing LangGraph accounts have `disableLocalAuth=true` with public
-network access disabled. No policy exemption is required or justified.
-
-The same standalone Microsoft Responses control became active and created a
-session in the existing MAF private account and in a fresh account injected
-into a new subnet in the MAF VNet. In the LangGraph VNet, it failed in the
-original project, a fresh project, and two fresh accounts on independent
-delegated `/24` subnets. Matching the MAF NAT, Cognitive Services service
-endpoint, NSG, project RBAC, project connections, and exact Storage, Cosmos DB,
-and Search dependencies did not resolve activation. The strongest failures
-returned `invalid_configuration` and request IDs
-`1e32f26f360f4fc0573cee5696f0a1df`,
-`b1d31ec65ad691240ea08a83b8754038`, and
-`53075aa912bf7ced00d9405fb0da07ef`.
-
-The blocker is isolated to Foundry's managed network-injection/service-link
-path for the LangGraph VNet even though ARM reports the account, capability
-hosts, service association, and subnet as `Succeeded`. Microsoft must inspect
-that service-side state before a production hosted version can be accepted.
-
-The source now preserves the official Storage role contract, removes the
-unnecessary per-version ACR role-assignment capability, and classifies hosted
-and wrapper execution as `foundry-private-*`. A fresh full release must not run
-until Microsoft resolves or explains the service-side hosted activation
-failure. The sanitized reproduction and support handoff are tracked in
-[repository issue #1](https://github.com/ppenumatsa1/langgraph-wf-monorepo/issues/1).
+Private packaging now installs and requires Buildx, publishes production hosted
+images with provenance, and fails closed unless registry inspection confirms
+both required index entries. The authoritative private ACR endpoint now exists
+only in `10.76.1.0/24`; application-side clients reach it over peering, avoiding
+duplicate private DNS records. A fresh full release is required before claiming
+production activation, smoke, E2E, evaluation, telemetry, or accepted evidence.
 
 Validation results:
 

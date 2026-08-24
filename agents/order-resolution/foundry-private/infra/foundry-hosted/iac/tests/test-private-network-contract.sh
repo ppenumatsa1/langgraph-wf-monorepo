@@ -66,6 +66,8 @@ done
 ! grep -Fq "category: 'RequestResponse'" "$template"
 ! grep -Fq "projectContainerRegistryConnectionBootstrap" "$template"
 ! grep -Fq "projectWorkspaceIdGuid" "$template"
+! grep -Fq "resource containerRegistryPrivateEndpointBootstrap" "$template"
+! grep -Fq "resource containerRegistryPrivateDnsZoneGroupBootstrap" "$template"
 ! grep -Fq 'POSTGRES_OPERATOR_IP' "$template"
 grep -Fq "networkProfile:" "$template"
 grep -Fq "id: privateRunnerNicBootstrap!.id" "$template"

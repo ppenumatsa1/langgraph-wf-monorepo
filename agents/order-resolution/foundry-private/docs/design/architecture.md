@@ -51,7 +51,7 @@ VNet.
 | Foundry integration | `10.76.0.0/24` | Private Foundry integration and delegated service traffic |
 | Foundry dependency endpoints | `10.76.1.0/24` | ACR, Storage, Cosmos DB, and Search endpoints used by hosted compute |
 | Container Apps | `10.74.2.0/23` | External frontend and internal FastAPI wrapper |
-| Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and other approved private endpoints |
+| Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, and other application-side private endpoints |
 | Private runner | `10.74.5.0/27` | Noninteractive Azure validation, packaging, and mutation |
 | Search private endpoint | `10.75.0.0/27` | Same-region private endpoint for the `westus3` Search service |
 

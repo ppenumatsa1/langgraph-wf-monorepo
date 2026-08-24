@@ -38,7 +38,7 @@ not live deployment evidence.
 | Foundry integration | `10.76.0.0/24` | Private Foundry integration |
 | Foundry dependency endpoints | `10.76.1.0/24` | Private dependency access for hosted compute |
 | Container Apps | `10.74.2.0/23` | External frontend and internal wrapper |
-| Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and approved services |
+| Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, and approved application-side services |
 | Private runner | `10.74.5.0/27` | Validation, packaging, and approved mutation |
 
 Private DNS zones must resolve all private service names from the wrapper and

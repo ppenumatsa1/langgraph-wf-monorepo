@@ -52,7 +52,7 @@ contaminating the application, endpoint, or runner subnets.
 | Foundry integration | `10.76.0.0/24` | Private Foundry integration and delegated network requirements |
 | Foundry dependency endpoints | `10.76.1.0/24` | Lane-owned ACR, Storage, Cosmos DB, and Search endpoints for hosted compute |
 | Container Apps | `10.74.2.0/23` | External frontend and internal FastAPI wrapper |
-| Private endpoints | `10.74.4.0/24` | Private endpoints for Foundry, PostgreSQL, and ACR |
+| Private endpoints | `10.74.4.0/24` | Private endpoints for Foundry, PostgreSQL, and application-side services |
 | Runner | `10.74.5.0/27` | Private, noninteractive Azure automation runner |
 
 Only the frontend has external ingress. The wrapper has internal ingress, and

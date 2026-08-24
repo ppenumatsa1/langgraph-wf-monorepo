@@ -102,6 +102,12 @@ assert_no_match \
   "$root_dir/infra/foundry-hosted/iac/main.bicep"
 grep -Fq 'az acr login' "$scripts_dir/runner_acr_package.sh"
 grep -Fq -- '--output none >/dev/null' "$scripts_dir/runner_acr_package.sh"
+grep -Fq 'docker buildx version' "$scripts_dir/runner_acr_package.sh"
+grep -Fq -- '--platform linux/amd64' "$scripts_dir/runner_acr_package.sh"
+grep -Fq -- '--provenance=true' "$scripts_dir/runner_acr_package.sh"
+grep -Fq 'type == "array"' "$scripts_dir/runner_acr_package.sh"
+grep -Fq 'platform.architecture == "unknown"' "$scripts_dir/runner_acr_package.sh"
+grep -Fq 'docker-buildx' "$scripts_dir/runner_bootstrap_remote.sh"
 grep -Fq '.properties.configuration.ingress.external == false' \
   "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq '.properties.configuration.ingress.external == false' \
@@ -123,6 +129,7 @@ grep -Fq 'publicNetworkAccess // .publicNetworkAccess // empty' "$scripts_dir/ru
 grep -Fq '"Disabled"' "$scripts_dir/runner_acr_package.sh"
 assert_no_match 'az acr update .*public-network-enabled (true|Enabled)' "$scripts_dir/runner_acr_package.sh"
 grep -Fq 'image="${registry_endpoint}/${repository}@${digest}"' "$scripts_dir/runner_acr_package.sh"
+grep -Fq -- '--push' "$scripts_dir/runner_acr_package.sh"
 grep -Fq 'docker push "$tagged_image"' "$scripts_dir/runner_acr_package.sh"
 if grep -Fq 'az acr build' "$scripts_dir/runner_acr_package.sh"; then
   echo "Private ACR packaging must build and push from the VNet runner." >&2

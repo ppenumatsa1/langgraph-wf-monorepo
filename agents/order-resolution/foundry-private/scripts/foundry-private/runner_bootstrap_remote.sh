@@ -37,7 +37,7 @@ expected_workdir="/opt/order-resolution/source/agents/order-resolution/foundry-p
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq
 apt-get install -y --no-install-recommends \
-  ca-certificates curl docker.io git gnupg jq postgresql-client \
+  ca-certificates curl docker.io docker-buildx git gnupg jq postgresql-client \
   python3 python3-pip python3-venv >/dev/null
 
 node_major="$(node --version 2>/dev/null | sed -n 's/^v\([0-9][0-9]*\).*/\1/p' || true)"

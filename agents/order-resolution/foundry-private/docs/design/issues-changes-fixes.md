@@ -25,7 +25,7 @@ Reserved subnets are:
 | Foundry integration | `10.76.0.0/24` | Private Foundry integration |
 | Foundry dependency endpoints | `10.76.1.0/24` | Hosted-compute endpoints for lane-owned dependencies |
 | Container Apps | `10.74.2.0/23` | External frontend and internal wrapper |
-| Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, ACR, and approved services |
+| Private endpoints | `10.74.4.0/24` | Foundry, PostgreSQL, and approved application-side services |
 | Private runner | `10.74.5.0/27` | Noninteractive validation and approved mutation |
 | Search private endpoint | `10.75.0.0/27` | Same-region endpoint for the `westus3` Search service |
 
@@ -464,26 +464,52 @@ bootstrap, and excludes generated pytest scratch content.
   placeholder, and externally managed schema guards instead of misclassifying
   private runtime processes as `aca-private`.
 
+### 2026-08-24 - Fresh Foundry VNet recovery and hosted image contract
+
+- A clean `10.76.0.0/16` Foundry VNet and fresh Foundry account restored
+  network-injected hosted activation. The project identity pulled an exact
+  known-good digest from the lane-owned private ACR and the control became
+  active, proving the new network, private registry endpoint, RBAC, capability
+  hosts, model deployments, and lane-owned dependencies.
+- The authoritative ACR endpoint is now only in the `10.76.1.0/24` Foundry
+  dependency subnet. Primary-VNet clients reach it through peering and shared
+  private DNS. Defining a second ACR endpoint in `10.74.4.0/24` produced
+  duplicate private DNS names and selected the stale address, so that endpoint
+  and its DNS group were removed from live Azure and repository IaC.
+- Every newly built diagnostic and production image was pulled successfully
+  but failed activation. Artifact comparison found that the active image was
+  an OCI image index containing a Linux/amd64 manifest and a BuildKit
+  provenance attestation, while rejected runner builds were bare OCI image
+  manifests.
+- Wrapping a rejected manifest in a one-platform index still failed. Rebuilding
+  the same control with `docker buildx build --platform linux/amd64
+  --provenance=true --push` produced the expected two-entry OCI index and
+  became active as
+  `order-resolution-buildx-control:1`. This isolates the blocker to the hosted
+  image publication shape rather than application code, package versions,
+  local authentication, networking, identity, or dependencies.
+- Private packaging now requires Docker Buildx, publishes hosted images with
+  provenance, and rejects an artifact unless registry inspection confirms both
+  the Linux/amd64 image and the attestation entry. Backend and frontend
+  packaging retain their proven single-manifest Docker path.
+
 ## Open implementation follow-through
 
-1. Resolve the Foundry network-injection blocker with Microsoft using the
-   failed control versions, downstream-dependency request IDs, successful MAF
-   VNet controls, capability-host state, and successful private ACR pulls.
-2. After Microsoft confirms remediation, deploy a fresh production hosted
-   version from the exact committed digest; do not reuse failed diagnostic
-   versions as release evidence.
-3. Run fresh hosted low-risk, approval/resume, damaged-item, browser,
+1. Build and deploy a fresh production hosted image from the exact committed
+   remediation and verify its immutable digest becomes active.
+2. Run fresh hosted low-risk, approval/resume, damaged-item, browser,
    telemetry, and report-only evaluation checks.
-4. Record release-window-scoped, secret-free evidence only after those checks
-   complete.
+3. Complete the integrated Rubber Duck review, remove diagnostic agents,
+   repositories, and temporary cross-lane roles, then record only fresh
+   release-window evidence.
 
 ## Explicit non-claims
 
 - Azure infrastructure, private endpoints, DNS, identities, runner,
-  PostgreSQL readiness, private ACR packaging/pulls, and backend/frontend
-  deployment are live and verified. No active Foundry hosted version, hosted
-  smoke, hosted/browser E2E, Foundry evaluation, or release-window telemetry
-  success is claimed.
+  PostgreSQL readiness, private ACR packaging/pulls, backend/frontend
+  deployment, and Buildx control activation are live and verified. No active
+  production LangGraph version, hosted smoke, hosted/browser E2E, Foundry
+  evaluation, or release-window telemetry success is claimed yet.
 - No historical resource ID, endpoint, conversation ID, evaluation ID, release
   ID, deployment ID, or success report is reused as private-lane evidence.
 - No public dependency endpoint is approved as a fallback.

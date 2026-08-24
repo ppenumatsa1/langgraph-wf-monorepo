@@ -53,7 +53,7 @@ The isolated BYO VNet is `10.74.0.0/16`:
 - Foundry integration: `10.76.0.0/24`
 - Foundry dependency endpoints: `10.76.1.0/24`
 - Container Apps: `10.74.2.0/23`
-- Private endpoints: `10.74.4.0/24`
+- Application private endpoints: `10.74.4.0/24`
 - Private runner: `10.74.5.0/27`
 
 Only the frontend has external ingress. Private DNS zones/links and endpoint

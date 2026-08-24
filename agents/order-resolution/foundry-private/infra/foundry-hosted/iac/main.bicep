@@ -1119,28 +1119,6 @@ resource standardAgentSearchPrivateEndpointBootstrap 'Microsoft.Network/privateE
   tags: tags
 }
 
-resource containerRegistryPrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
-  name: take('${containerRegistryName}-registry-pe', 80)
-  location: location
-  properties: {
-    subnet: {
-      id: privateEndpointSubnetBootstrap!.id
-    }
-    privateLinkServiceConnections: [
-      {
-        name: 'container-registry'
-        properties: {
-          privateLinkServiceId: containerRegistryBootstrap!.id
-          groupIds: [
-            'registry'
-          ]
-        }
-      }
-    ]
-  }
-  tags: tags
-}
-
 resource foundryStoragePrivateEndpointBootstrap 'Microsoft.Network/privateEndpoints@2024-05-01' = if (isBootstrap) {
   name: take('${standardAgentStorageAccountName}-foundry-blob-pe', 80)
   location: location
@@ -1427,24 +1405,6 @@ resource standardAgentCosmosPrivateDnsZoneGroupBootstrap 'Microsoft.Network/priv
         name: 'cosmos'
         properties: {
           privateDnsZoneId: privateDnsZoneResourcesBootstrap[5].id
-        }
-      }
-    ]
-  }
-  dependsOn: [
-    privateDnsZoneVnetLinksBootstrap
-  ]
-}
-
-resource containerRegistryPrivateDnsZoneGroupBootstrap 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-05-01' = if (isBootstrap) {
-  parent: containerRegistryPrivateEndpointBootstrap
-  name: 'registry-dns'
-  properties: {
-    privateDnsZoneConfigs: [
-      {
-        name: 'registry'
-        properties: {
-          privateDnsZoneId: privateDnsZoneResourcesBootstrap[6].id
         }
       }
     ]
