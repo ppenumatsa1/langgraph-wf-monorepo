@@ -151,6 +151,8 @@ fi
 assert_no_match \
   'scripts/foundry/(hosted_e2e|run_foundry_eval|bootstrap_postgres_schema|provision_postgres_runtime_credentials)' \
   "$scripts_dir" --exclude-dir=tests --include='*.sh'
+grep -Fq '"DATABASE_URL": placeholder' "$scripts_dir/deploy_hosted_agent.py"
+! grep -Fq '"RUNTIME_DATABASE_URL": placeholder' "$scripts_dir/deploy_hosted_agent.py"
 assert_no_match \
   '/tmp|read -[[:alnum:]]*[[:space:]]*-p|APPROVED|CONFIRM' \
   "$scripts_dir" --exclude-dir=tests --include='*.sh' --include='*.py'

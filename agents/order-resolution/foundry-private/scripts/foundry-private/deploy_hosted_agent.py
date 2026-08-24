@@ -82,7 +82,6 @@ def build_definition() -> HostedAgentDefinition:
         environment_variables={
             "AZURE_AI_MODEL_DEPLOYMENT_NAME": require("FOUNDRY_MODEL_DEPLOYMENT_NAME"),
             "DATABASE_URL": placeholder,
-            "RUNTIME_DATABASE_URL": placeholder,
             "APP_ENV": "foundry-private-hosted",
             "STORE_PROVIDER": "postgres",
             "DB_SCHEMA_MANAGED_EXTERNALLY": "true",

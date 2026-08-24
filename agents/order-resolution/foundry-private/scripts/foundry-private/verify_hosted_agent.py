@@ -52,8 +52,8 @@ def verify_version_metadata(
         "database_connection_placeholder_matches": (
             environment_variables.get("DATABASE_URL") == expected_database_placeholder
         ),
-        "runtime_database_connection_placeholder_matches": (
-            environment_variables.get("RUNTIME_DATABASE_URL") == expected_database_placeholder
+        "runtime_database_connection_not_duplicated": (
+            "RUNTIME_DATABASE_URL" not in environment_variables
         ),
         "schema_managed_externally": (
             str(environment_variables.get("DB_SCHEMA_MANAGED_EXTERNALLY", "")).lower() == "true"
