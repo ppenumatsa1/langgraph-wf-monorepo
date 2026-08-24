@@ -66,9 +66,9 @@ assert_public_access_disabled "$cosmos_json" Private-Cosmos
 assert_public_access_disabled "$search_json" Private-search
 [[ "$(jq -r '.properties.vnetConfiguration.infrastructureSubnetId // empty' <<<"$environment_json")" != "" ]] ||
   private_die "Container Apps environment must use the private infrastructure subnet"
-[[ "$(jq -r '.properties.publicNetworkAccessForIngestion // empty' <<<"$appinsights_json")" == "Disabled" ]] ||
+[[ "$(jq -r '.publicNetworkAccessForIngestion // .properties.publicNetworkAccessForIngestion // empty' <<<"$appinsights_json")" == "Disabled" ]] ||
   private_die "Application Insights ingestion public network access must be Disabled"
-[[ "$(jq -r '.properties.publicNetworkAccessForQuery // empty' <<<"$appinsights_json")" == "Disabled" ]] ||
+[[ "$(jq -r '.publicNetworkAccessForQuery // .properties.publicNetworkAccessForQuery // empty' <<<"$appinsights_json")" == "Disabled" ]] ||
   private_die "Application Insights query public network access must be Disabled"
 
 assert_private_endpoint "$(jq -r '.id' <<<"$foundry_json")" Foundry
