@@ -185,6 +185,7 @@ grep -Fq 'telemetry' "$scripts_dir/release.sh"
 grep -Fq 'runner_exec.sh" telemetry' "$scripts_dir/telemetry.sh"
 grep -Fq 'az monitor app-insights query' "$scripts_dir/runner_telemetry.sh"
 grep -Fq 'runner_telemetry.sh' "$scripts_dir/runner_stage.sh"
+grep -Fq 'cd "$PRIVATE_ROOT_DIR/backend"' "$scripts_dir/runner_evaluation.sh"
 grep -Fq 'extract_azd_agent_json.py' "$scripts_dir/runner_smoke.sh"
 grep -Fq 'extract_azd_agent_json.py' "$scripts_dir/runner_hosted_e2e.sh"
 if grep -Fq 'provision.sh' "$scripts_dir/release.sh"; then

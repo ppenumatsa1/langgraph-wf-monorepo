@@ -22,6 +22,7 @@ e2e_started_at="$(jq -r '.started_at // empty' "$e2e_evidence")"
 [[ -n "$e2e_started_at" ]] ||
   private_die "private HITL E2E evidence is missing its start time"
 
+cd "$PRIVATE_ROOT_DIR/backend"
 AZURE_DEV_USER_AGENT=microsoft_foundry_skill \
 FOUNDRY_AZD_DIR="$PRIVATE_AZD_DIR" \
 FOUNDRY_AZD_ENV_NAME="$PRIVATE_EXPECTED_ENVIRONMENT" \

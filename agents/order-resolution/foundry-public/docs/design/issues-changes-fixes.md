@@ -257,3 +257,12 @@ PostgreSQL application names for operational attribution. Deployment
 verification must reject drift from the lane's chosen limits. This entry
 records the learning only; it does not replace fresh public-lane release
 evidence.
+
+## 2026-08-24 - Cross-lane evaluator working-directory contract
+
+The private runner exposed that `python -m evals.foundry_eval_runner` depends
+on `backend` being the current working directory unless `backend` is explicitly
+added to `PYTHONPATH`. The public and Azure-hosted evaluator scripts already
+enforce `cd "$ROOT_DIR/backend"` before module execution; the private lane now
+uses the same contract and tests it. Future evaluator runners must preserve an
+explicit module root rather than relying on the caller's working directory.

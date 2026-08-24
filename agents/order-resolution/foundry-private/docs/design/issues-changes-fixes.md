@@ -534,6 +534,17 @@ bootstrap, and excludes generated pytest scratch content.
   A fresh immutable deployment and complete release rerun remain required
   before claiming the connection remediation or downstream browser,
   evaluation, and telemetry gates as accepted.
+- Release `langgraph-order-resolution-private-20260824T204831Z-212460`
+  subsequently proved hosted smoke, three-scenario hosted E2E, workflow browser
+  7/7, and selected-thread browser 7/7 with the bounded pools. It then stopped
+  at evaluation before contacting Foundry because
+  `python -m evals.foundry_eval_runner` was launched from the lane root, where
+  the `backend/evals` package was not importable.
+- The public and Azure-hosted reference scripts both change into `backend`
+  before launching the evaluator module. The private runner now follows that
+  same module-resolution contract, and its script test rejects removing the
+  working-directory change. A fresh release remains required because the
+  failed release cannot provide atomic evaluation and telemetry evidence.
 
 ## Open implementation follow-through
 
