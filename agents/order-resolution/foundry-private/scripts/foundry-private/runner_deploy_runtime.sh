@@ -24,6 +24,7 @@ frontend_name="$(private_required_env_value FRONTEND_CONTAINER_APP_NAME)"
 backend_identity="$(private_required_env_value PRIVATE_BACKEND_MANAGED_IDENTITY_NAME)"
 project_endpoint="$(private_required_env_value AZURE_AI_PROJECT_ENDPOINT)"
 agent_name="$(private_required_env_value HOSTED_AGENT_NAME)"
+responses_endpoint="$(private_required_env_value FOUNDRY_HOSTED_RESPONSES_URL)"
 model_name="$(private_required_env_value FOUNDRY_MODEL_DEPLOYMENT_NAME)"
 runtime_connection="$(private_required_env_value FOUNDRY_RUNTIME_CONNECTION_NAME)"
 runtime_database_url="$(private_required_env_value RUNTIME_DATABASE_URL)"
@@ -37,6 +38,8 @@ for image in "$backend_image" "$frontend_image" "$hosted_image"; do
 done
 [[ "$runtime_database_url" == postgresql+psycopg://* && "$runtime_database_url" == *"sslmode=require"* ]] ||
   private_die "private runtime database URL must use TLS"
+[[ "$responses_endpoint" == "${project_endpoint%/}/agents/${agent_name}/endpoint/protocols/openai/responses?api-version=v1" ]] ||
+  private_die "private wrapper Responses endpoint does not match the selected Foundry project and agent"
 
 backend_json="$(az containerapp show --subscription "$subscription_id" --resource-group "$resource_group" --name "$backend_name" --output json)"
 frontend_json="$(az containerapp show --subscription "$subscription_id" --resource-group "$resource_group" --name "$frontend_name" --output json)"
@@ -77,6 +80,7 @@ case "$stage" in
         "AZURE_TOKEN_CREDENTIALS=prod" \
         "AZURE_AI_PROJECT_ENDPOINT=$project_endpoint" \
         "FOUNDRY_PROJECTS_ENDPOINT=$project_endpoint" \
+        "FOUNDRY_RESPONSES_ENDPOINT=$responses_endpoint" \
         "FOUNDRY_MODEL_DEPLOYMENT_NAME=$model_name" \
         "ENABLE_TELEMETRY=true" \
         "ENABLE_INSTRUMENTATION=true" \

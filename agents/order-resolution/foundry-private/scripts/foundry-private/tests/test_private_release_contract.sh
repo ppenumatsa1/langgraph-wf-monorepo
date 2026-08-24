@@ -96,6 +96,9 @@ grep -Fq 'range(120)' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq 'matching_active_version' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq '"APP_ENV": "foundry-private-hosted"' "$scripts_dir/deploy_hosted_agent.py"
 grep -Fq '"APP_ENV=foundry-private-wrapper"' "$scripts_dir/runner_deploy_runtime.sh"
+grep -Fq '"FOUNDRY_RESPONSES_ENDPOINT=$responses_endpoint"' "$scripts_dir/runner_deploy_runtime.sh"
+grep -Fq 'FOUNDRY_HOSTED_RESPONSES_URL' "$scripts_dir/runner_deploy_runtime.sh"
+grep -Fq 'select(.name == "FOUNDRY_RESPONSES_ENDPOINT")' "$scripts_dir/runner_verify_runtime.sh"
 assert_no_match \
   'ensure_acr_pull|FOUNDRY_ACR_RESOURCE_ID|Order Resolution Private ACR Pull Assigner' \
   "$scripts_dir/deploy_hosted_agent.py" "$scripts_dir/runner_deploy_runtime.sh" \

@@ -22,6 +22,7 @@ hosted_principal_id="$(private_required_env_value AGENT_ORDER_RESOLUTION_PRIVATE
 agent_name="$(private_required_env_value HOSTED_AGENT_NAME)"
 project_endpoint="$(private_required_env_value AZURE_AI_PROJECT_ENDPOINT)"
 runtime_connection="$(private_required_env_value FOUNDRY_RUNTIME_CONNECTION_NAME)"
+responses_endpoint="$(private_required_env_value FOUNDRY_HOSTED_RESPONSES_URL)"
 python="$PRIVATE_ROOT_DIR/backend/.venv/bin/python"
 hosted_verifier="$SCRIPT_DIR/verify_hosted_agent.py"
 [[ -x "$python" ]] || private_die "private runner requires backend/.venv for hosted verification"
@@ -68,6 +69,16 @@ jq -e '
   and all(.[]; (.value // "") == "false")
 ' <<<"$backend_json" >/dev/null ||
   private_die "private backend telemetry content must remain redacted"
+jq -e --arg endpoint "$responses_endpoint" '
+  [
+    .properties.template.containers[0].env[]?
+    | select(.name == "FOUNDRY_RESPONSES_ENDPOINT")
+  ]
+  | length == 1
+  and .[0].value == $endpoint
+  and (.[0].secretRef // "") == ""
+' <<<"$backend_json" >/dev/null ||
+  private_die "private backend must target the immutable hosted Responses endpoint"
 
 frontend_fqdn="$(jq -r '.properties.configuration.ingress.fqdn // empty' <<<"$frontend_json")"
 [[ -n "$frontend_fqdn" ]] || private_die "private frontend FQDN is missing"
