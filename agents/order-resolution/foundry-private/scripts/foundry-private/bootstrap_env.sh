@@ -83,7 +83,9 @@ set_default FOUNDRY_EMBEDDINGS_MODEL_VERSION 1
 set_default FOUNDRY_EMBEDDINGS_MODEL_CAPACITY 10
 set_default FOUNDRY_EVAL_MODEL order-resolution-private-gpt-4-1-mini-evaluation
 set_default FOUNDRY_EVALUATION_MODEL_CAPACITY 50
-set_default FOUNDRY_RAI_POLICY_NAME Microsoft.Default
+set_default FOUNDRY_RAI_POLICY_NAME Microsoft.DefaultV2
+[[ "$(private_required_env_value FOUNDRY_RAI_POLICY_NAME)" == "Microsoft.DefaultV2" ]] ||
+  private_die "FOUNDRY_RAI_POLICY_NAME must be explicitly set to Microsoft.DefaultV2"
 set_default CONTAINER_REGISTRY_NAME "${name_base}acr"
 set_default STANDARD_AGENT_STORAGE_ACCOUNT_NAME "${name_base}st"
 set_default STANDARD_AGENT_COSMOS_ACCOUNT_NAME "${name_base}cosmos"

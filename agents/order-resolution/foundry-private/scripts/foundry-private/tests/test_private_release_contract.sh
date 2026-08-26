@@ -10,7 +10,7 @@ trap 'rm -rf -- "$scratch_dir"' EXIT
 assert_no_match() {
   local pattern="$1"
   shift
-  if grep -REn "$pattern" "$@"; then
+  if grep -REn -e "$pattern" "$@"; then
     echo "Forbidden private release pattern matched: $pattern" >&2
     exit 1
   fi
@@ -70,10 +70,21 @@ done < <(find "$scripts_dir" -maxdepth 1 -type f -name '*.sh' -print | sort)
 
 grep -Fq 'AZURE_DEV_USER_AGENT=microsoft_foundry_skill azd' "$scripts_dir/common.sh"
 grep -Fq 'azd provision --cwd "$PRIVATE_AZD_DIR" --preview --no-prompt' "$scripts_dir/what_if.sh"
+grep -Fq 'FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE must explicitly select bootstrap or reuse' \
+  "$scripts_dir/what_if.sh"
+grep -Fq 'actual_mode="$(private_azd_value INFRASTRUCTURE_MODE)"' \
+  "$scripts_dir/what_if.sh"
 grep -Fq 'Delete or Replace' "$scripts_dir/what_if_guard.py"
 grep -Fq 'Microsoft.Compute/virtualMachines' "$scripts_dir/iac_contract.sh"
 grep -Fq 'openssl rand -hex 24' "$scripts_dir/bootstrap_env.sh"
 grep -Fq "ssh-keygen -q -t ed25519" "$scripts_dir/bootstrap_env.sh"
+grep -Fq 'set_default FOUNDRY_RAI_POLICY_NAME Microsoft.DefaultV2' \
+  "$scripts_dir/bootstrap_env.sh"
+grep -Fq 'FOUNDRY_RAI_POLICY_NAME must be explicitly set to Microsoft.DefaultV2' \
+  "$scripts_dir/bootstrap_env.sh"
+grep -Fq 'private model deployments require Microsoft.DefaultV2' \
+  "$scripts_dir/model_preflight.sh"
+grep -Fq 'raiPolicyName // .raiPolicyName // empty' "$scripts_dir/model_preflight.sh"
 grep -Fq 'capabilityHosts' "$scripts_dir/capability_host_cleanup.sh"
 grep -Fq 'az vm run-command invoke' "$scripts_dir/runner_exec.sh"
 grep -Fq -- '--command-id RunShellScript' "$scripts_dir/runner_exec.sh"
@@ -140,8 +151,49 @@ grep -Fq 'persistent_dir="/var/lib/order-resolution"' "$scripts_dir/runner_boots
 grep -Fq 'persistent_env="$persistent_dir/private-runner.env"' "$scripts_dir/runner_bootstrap_remote.sh"
 grep -Fq 'runner_bootstrap.sh' "$scripts_dir/provision.sh"
 grep -Fq 'wait_foundry_ready.sh' "$scripts_dir/provision.sh"
+grep -Fq 'INFRASTRUCTURE_MODE bootstrap' "$scripts_dir/provision.sh"
 grep -Fq 'DEPLOY_FOUNDRY_READY_RESOURCES false' "$scripts_dir/provision.sh"
 grep -Fq 'DEPLOY_FOUNDRY_READY_RESOURCES true' "$scripts_dir/provision.sh"
+grep -Fq 'FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE=bootstrap "$SCRIPT_DIR/what_if.sh"' \
+  "$scripts_dir/provision.sh"
+python3 - "$scripts_dir/provision.sh" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1]).read_text(encoding="utf-8")
+bootstrap = source.index("private_azd_set INFRASTRUCTURE_MODE bootstrap")
+phase_one_preview = source.index('private_azd_set DEPLOY_FOUNDRY_READY_RESOURCES false')
+phase_one_provision = source.index('private_azd provision --cwd "$PRIVATE_AZD_DIR" --no-prompt')
+reuse = source.index("private_azd_set INFRASTRUCTURE_MODE reuse")
+if not bootstrap < phase_one_preview < phase_one_provision < reuse:
+    raise SystemExit(
+        "Private provisioning must enter bootstrap before preview/provision and reuse only after reconciliation."
+    )
+PY
+grep -Fq 'private_azd_set INFRASTRUCTURE_MODE reuse' "$scripts_dir/release.sh"
+grep -Fq 'az role assignment update' "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq 'az role assignment delete' "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq -- '--bypass AzureServices' "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq -- '--dry-run' "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq 'private Storage network rules changed unexpectedly' \
+  "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq 'private-storage connection did not converge' \
+  "$scripts_dir/reconcile_evaluation_storage.sh"
+assert_no_match \
+  '--method([[:space:]=]+)([Pp][Uu][Tt]|[Pp][Aa][Tt][Cc][Hh]|[Dd][Ee][Ll][Ee][Tt][Ee])' \
+  "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq 'targeted evaluation Storage reconciliation requires retained reuse mode' \
+  "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq 'connections/private-storage?api-version=2025-04-01-preview' \
+  "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq 'private_azd_set INFRASTRUCTURE_MODE reuse' \
+  "$scripts_dir/reconcile_evaluation_storage.sh"
+grep -Fq 'foundry-private-evaluation-storage-plan' "$root_dir/Makefile"
+grep -Fq 'foundry-private-evaluation-storage-reconcile' "$root_dir/Makefile"
+grep -Fq 'FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE="$(FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE)"' \
+  "$root_dir/Makefile"
+grep -Fq "param foundryRaiPolicyName string = 'Microsoft.DefaultV2'" \
+  "$root_dir/infra/foundry-hosted/iac/main.bicep"
 grep -Fq 'publicNetworkAccess // .publicNetworkAccess // empty' "$scripts_dir/runner_acr_package.sh"
 grep -Fq '"Disabled"' "$scripts_dir/runner_acr_package.sh"
 assert_no_match 'az acr update .*public-network-enabled (true|Enabled)' "$scripts_dir/runner_acr_package.sh"

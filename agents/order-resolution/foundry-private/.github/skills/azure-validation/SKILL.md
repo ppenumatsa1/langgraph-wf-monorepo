@@ -38,7 +38,7 @@ live behavior without running commands that mutate Azure resources.
 Run non-mutating checks only:
 
 ```bash
-make foundry-private-what-if
+FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE=bootstrap make foundry-private-what-if
 make foundry-private-iac-build
 make foundry-private-package
 ```

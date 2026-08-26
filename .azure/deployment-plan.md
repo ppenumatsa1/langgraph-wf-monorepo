@@ -1,6 +1,10 @@
 # Order Resolution Foundry-Private Deployment Plan
 
-**Status:** Hosted image publication root cause fixed; full release pending
+**Status:** Validated
+
+**Execution hold:** The targeted Storage/RBAC reconciliation awaits explicit
+confirmation because it restricts one role assignment and removes one temporary
+broad role assignment.
 **Approval source:** The user approved the Foundry-private Order Resolution
 plan and requested autonomous implementation through local proof, IaC,
 deployment, smoke, E2E, evaluations, telemetry, evidence, review, and commit.
@@ -115,19 +119,25 @@ PostgreSQL bootstrap, immutable ACR packaging, and backend/frontend deployments
 are complete. The clean Foundry VNet removed the original managed
 network-injection blocker.
 
-The remaining hosted failure was isolated to image publication. Working images
-were OCI indexes with a Linux/amd64 manifest and BuildKit provenance
-attestation; runner-built images were bare OCI manifests. A one-entry index
-around a rejected manifest still failed, while the same official control built
-with `docker buildx build --platform linux/amd64 --provenance=true --push`
-became active as `order-resolution-buildx-control:1`.
+Buildx OCI-index publication, hosted activation, smoke, three-scenario hosted
+E2E, workflow browser E2E `7/7`, and selected-thread browser E2E `7/7` are now
+proven. Bounded PostgreSQL pools removed the prior hosted-session connection
+exhaustion.
 
-Private packaging now installs and requires Buildx, publishes production hosted
-images with provenance, and fails closed unless registry inspection confirms
-both required index entries. The authoritative private ACR endpoint now exists
-only in `10.76.1.0/24`; application-side clients reach it over peering, avoiding
-duplicate private DNS records. A fresh full release is required before claiming
-production activation, smoke, E2E, evaluation, telemetry, or accepted evidence.
+The remaining release blocker is Foundry evaluation artifact access. Live
+Storage still reports `bypass=None`, and temporary diagnosis left broad
+`Storage Blob Data Owner` assignments on both Foundry identities. The committed
+contract requires `AzureServices` bypass, Contributor roles for both identities,
+one workspace/container-conditioned project Owner, no account Owner, and
+`private-storage` revalidation after RBAC.
+
+The full bootstrap preview is not approved for this repair: after correcting a
+stale RAI-policy parameter to preserve live `Microsoft.DefaultV2`, it still
+contains unrelated retained-resource diffs. A read-only narrow plan now proves
+the exact intended Storage/RBAC changes and connection validation. Applying it requires
+explicit confirmation because it modifies RBAC and deletes the temporary broad
+account Owner assignment. A fresh full release is required afterward for
+evaluation, telemetry, connection-budget proof, and accepted evidence.
 
 Validation results:
 
@@ -152,7 +162,9 @@ Validation results:
 ## Section 7: Validation Proof
 
 Recorded at `2026-08-20T15:54:41Z`; Search-region and two-phase Foundry
-remediation revalidated at `2026-08-20T20:26:00Z`.
+remediation revalidated at `2026-08-20T20:26:00Z`; current source, build,
+preview, and targeted Storage reconciliation plan revalidated at
+`2026-08-26T13:44:29Z`.
 
 | Validation | Command or tool | Result |
 | --- | --- | --- |
@@ -172,6 +184,11 @@ remediation revalidated at `2026-08-20T20:26:00Z`.
 | Docker/local E2E | Existing integrated private-lane Docker and Playwright gates | Docker workflow `7/7`, workflow Playwright `7/7`, and selected-thread Playwright `7/7` passed before Azure validation. |
 | Provision preview | `make foundry-private-what-if` with `DEPLOY_FOUNDRY_READY_RESOURCES=false`, then `true` | Phase-one and phase-two previews passed in 35 and 31 seconds with no delete or replace operations. |
 | Git/shell hygiene | `git diff --check`, `git diff --cached --check`, and `bash -n scripts/foundry-private/*.sh` | Passed. Generated runtime state and test scratch files remain excluded. |
+| Current backend/frontend build | `make test`; frontend `typecheck`, `lint`, and `build` | Ruff passed, backend `148/148` passed, and all frontend gates passed. |
+| Current private contracts | `make foundry-private-iac-build test-scripts test-deployment-profile` | Bicep contract passed, 5 script tests passed, and profile/release contracts passed. |
+| Explicit-mode previews | Bootstrap phase one and phase two through `what_if.sh` with `FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE=bootstrap` | Both rejected delete/replace changes. The corrected preview exposed the intended Storage bypass plus unrelated retained-resource drift, so full provisioning was not approved. |
+| Evaluation Storage plan | `make foundry-private-evaluation-storage-plan` | Read-only plan passed: `None -> AzureServices`, project Owner condition update, deletion of the exact temporary account Owner assignment, and post-change validation of the already-converged AAD `private-storage` connection. |
+| Model guardrail preservation | Bicep contract, bootstrap contract, preview, and live model preflight contract | `Microsoft.DefaultV2` is pinned and the corrected previews contain no RAI-policy change. |
 
 Preview remediation history:
 
@@ -187,6 +204,16 @@ Preview remediation history:
    to both.
 5. Split Foundry bootstrap into two fail-closed previews/deployments with a
    bounded account and account-capability-host `Succeeded` gate between them.
+6. Made infrastructure mode explicit for every standalone preview so retained
+   `reuse` state cannot produce a false safe no-op.
+7. Rejected the broad bootstrap apply because it contained unrelated material
+   drift; added a read-only, exact-scope evaluation Storage reconciliation plan
+   instead.
+
+The Storage posture assertions prove configuration convergence only. Release
+acceptance still requires a fresh Foundry evaluation to write and read its
+artifacts successfully; `AzureServices` bypass alone does not close the
+evaluation blocker.
 
 ## Stop conditions
 

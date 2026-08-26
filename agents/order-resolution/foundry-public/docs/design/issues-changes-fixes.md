@@ -278,3 +278,34 @@ keeps storage public access disabled with default deny and trusted
 `AzureServices` bypass, and creates the project storage connection only after
 those roles converge. Private LangGraph now follows that ordering. Public
 lanes should not copy the discarded broad-Owner hypothesis.
+
+## 2026-08-26 - Cross-lane infrastructure reconciliation mode guard
+
+Private-lane routine releases deliberately leave AZD in
+`INFRASTRUCTURE_MODE=reuse`, where the retained-resource template is empty.
+Therefore an explicit infrastructure reconciliation must set `bootstrap`
+before its first preview; otherwise a zero-change preview is a false no-op and
+cannot apply networking or RBAC corrections. The private provision contract now
+locks `bootstrap -> phase-one preview/provision -> phase-two preview/provision
+-> reconciliation -> reuse` ordering. Other lanes with bootstrap/reuse modes
+should enforce the same entry-point transition rather than trusting retained
+local AZD state.
+
+Corrected previews must also be reviewed for unrelated real drift rather than
+accepted solely because they contain no delete/replace operations. The private
+preview caught a stale `Microsoft.Default` parameter that would have
+downgraded three live `Microsoft.DefaultV2` model deployments during an
+otherwise storage-focused reconciliation; bootstrap now pins the live V2
+policy.
+
+When a full retained-resource preview includes unrelated material changes,
+zero delete/replace changes are not sufficient approval. The private lane now
+uses a narrower evaluation-Storage reconciliation that validates current state
+and touches only the reviewed bypass, temporary Owner assignments, and storage
+connection before returning AZD to `reuse`. Other lanes should prefer the same
+least-change recovery pattern over applying unrelated preview drift.
+
+Standalone infrastructure previews must also declare whether they expect
+`bootstrap` or `reuse` and verify that declaration against AZD state. Merely
+printing that an implicit reuse preview has no delete/replace changes recreates
+the original false no-op failure mode.

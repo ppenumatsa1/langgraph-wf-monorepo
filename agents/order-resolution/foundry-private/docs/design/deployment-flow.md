@@ -58,6 +58,13 @@ automatic bounded poll requires the account and account capability host to be
 project, connections, project RBAC, and project capability host. No human
 approval flag or blind retry is involved.
 
+The explicit provision entry point sets `INFRASTRUCTURE_MODE=bootstrap` before
+either preview. This is required even for reconciliation of an existing lane:
+the routine release leaves the retained AZD environment in `reuse`, whose
+template is intentionally empty and cannot mutate infrastructure. Provisioning
+returns the environment to `reuse` only after both phases and reconciliation
+complete.
+
 Within phase two, storage RBAC is ordered before the project storage
 connection. Storage remains public-access disabled and default deny, with the
 trusted `AzureServices` bypass required by the proven private evaluation path.
@@ -105,8 +112,9 @@ trusted `AzureServices` bypass required by the proven private evaluation path.
 | --- | --- | --- |
 | `make foundry-private-profile-apply` | 1 | Applies the selected private profile from the runner. |
 | `make foundry-private-gates` | 2 | Runs the private lane's local/profile gates. |
-| `make foundry-private-what-if` | 4 | Reviews private bootstrap or reuse behavior without applying it. |
+| `FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE=bootstrap make foundry-private-what-if` | 4 | Reviews the explicitly selected bootstrap mode without applying it; use `reuse` only when intentionally proving the empty app-only infrastructure path. |
 | `make foundry-private-provision` | 4-8 | Performs approved private bootstrap/reuse provisioning from the runner. |
+| `make foundry-private-evaluation-storage-plan` / `make foundry-private-evaluation-storage-reconcile` | 4-8 | Plans, then applies only the reviewed evaluation-Storage bypass and Owner-condition cleanup while revalidating the already-converged `private-storage` connection when a full retained-resource preview contains unrelated drift. |
 | `make foundry-private-runner-bootstrap` | 3 | Securely clones the exact private commit, installs dependencies, and hydrates runner AZD state. |
 | `make foundry-private-postgres-schema` | 7 | Applies administrator-owned schema. |
 | `make foundry-private-postgres-credentials` | 7 | Creates or rotates the least-privilege runtime credential. |

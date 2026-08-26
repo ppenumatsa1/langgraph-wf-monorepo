@@ -99,7 +99,7 @@ param foundryEvaluationDeploymentName string = 'order-resolution-private-gpt-4-1
 param foundryEvaluationModelCapacity int = 50
 
 @description('Responsible AI policy used by Foundry model deployments.')
-param foundryRaiPolicyName string = 'Microsoft.Default'
+param foundryRaiPolicyName string = 'Microsoft.DefaultV2'
 
 @description('Private Premium Azure Container Registry name.')
 param containerRegistryName string = take('${toLower(namePrefix)}${uniqueString(subscription().id, resourceGroup().id, namePrefix)}acr', 50)

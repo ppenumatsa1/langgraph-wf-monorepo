@@ -17,6 +17,9 @@ account_name="$(private_required_env_value FOUNDRY_ACCOUNT_NAME)"
 chat_deployment="$(private_required_env_value FOUNDRY_MODEL_DEPLOYMENT_NAME)"
 embeddings_deployment="$(private_required_env_value FOUNDRY_EMBEDDINGS_DEPLOYMENT_NAME)"
 evaluation_deployment="$(private_required_env_value FOUNDRY_EVAL_MODEL)"
+expected_rai_policy="$(private_required_env_value FOUNDRY_RAI_POLICY_NAME)"
+[[ "$expected_rai_policy" == "Microsoft.DefaultV2" ]] ||
+  private_die "private model deployments require Microsoft.DefaultV2"
 
 for deployment in "$chat_deployment" "$embeddings_deployment" "$evaluation_deployment"; do
   [[ "$deployment" == order-resolution-private-* ]] ||
@@ -29,14 +32,17 @@ usage="$(az cognitiveservices usage list --subscription "$subscription_id" --loc
 verify_deployment() {
   local purpose="$1"
   local deployment_name="$2"
-  local deployment model capacity state quota quota_current quota_limit
+  local deployment model capacity state rai_policy quota quota_current quota_limit
   deployment="$(jq -cer --arg name "$deployment_name" '[.[] | select(.name == $name)] | if length == 1 then .[0] else error("expected exactly one deployment") end' <<<"$deployments")" ||
     private_die "expected exactly one private $purpose model deployment"
   model="$(jq -r '.properties.model.name // .model.name // empty' <<<"$deployment")"
   capacity="$(jq -r '.sku.capacity // 0' <<<"$deployment")"
   state="$(jq -r '.properties.provisioningState // .provisioningState // empty' <<<"$deployment")"
+  rai_policy="$(jq -r '.properties.raiPolicyName // .raiPolicyName // empty' <<<"$deployment")"
   [[ "${state,,}" == "succeeded" && -n "$model" && "$capacity" =~ ^[0-9]+$ && "$capacity" -gt 0 ]] ||
     private_die "private $purpose deployment is not provisioned with usable capacity"
+  [[ "$rai_policy" == "$expected_rai_policy" ]] ||
+    private_die "private $purpose deployment must retain $expected_rai_policy"
   quota="$(jq -cer --arg model "${model,,}" '
     [
       .[]
@@ -60,10 +66,11 @@ verify_deployment() {
     --arg purpose "$purpose" \
     --arg deployment "$deployment_name" \
     --arg model "$model" \
+    --arg rai_policy "$rai_policy" \
     --argjson capacity "$capacity" \
     --argjson quota_current "$quota_current" \
     --argjson quota_limit "$quota_limit" \
-    '{purpose:$purpose,deployment:$deployment,model:$model,capacity:$capacity,quota:{current:$quota_current,limit:$quota_limit,available:($quota_limit - $quota_current)}}'
+    '{purpose:$purpose,deployment:$deployment,model:$model,rai_policy:$rai_policy,capacity:$capacity,quota:{current:$quota_current,limit:$quota_limit,available:($quota_limit - $quota_current)}}'
 }
 
 models="$(

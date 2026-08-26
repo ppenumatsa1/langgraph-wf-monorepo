@@ -1,6 +1,7 @@
 SHELL := /bin/bash
 COMPOSE_ENV_FILE ?= $(if $(wildcard backend/.env),backend/.env,backend/.env.example)
 FOUNDRY_PRIVATE_DEPLOYMENT_PROFILE ?= deployment/profiles/foundry-private.env
+FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE ?=
 
 .PHONY: help bootstrap venv-backend install-backend install-frontend ensure-backend-env ensure-test-postgres \
 	run-backend run-frontend format lint test test-backend eval-backend eval-foundry eval-foundry-config eval-all test-e2e manual-matrix \
@@ -17,7 +18,9 @@ FOUNDRY_PRIVATE_DEPLOYMENT_PROFILE ?= deployment/profiles/foundry-private.env
 	foundry-eval foundry-appinsights-connection foundry-telemetry \
 	foundry-verify foundry-evidence foundry-release foundry-release-migration-plan \
 	foundry-private-profile-apply foundry-private-gates foundry-private-iac-build \
-	foundry-private-bootstrap-env foundry-private-what-if foundry-private-provision foundry-private-capability-host-cleanup \
+	foundry-private-bootstrap-env foundry-private-what-if foundry-private-provision \
+	foundry-private-evaluation-storage-plan foundry-private-evaluation-storage-reconcile \
+	foundry-private-capability-host-cleanup \
 	foundry-private-postgres-schema foundry-private-postgres-credentials foundry-private-postgres-readiness \
 	foundry-private-runner-bootstrap foundry-private-model-preflight foundry-private-package foundry-private-backend-deploy \
 	foundry-private-frontend-deploy foundry-private-hosted-deploy foundry-private-verify \
@@ -60,6 +63,8 @@ help:
 	@echo "  foundry-private-release - Run the private, runner-only app release DAG"
 	@echo "  foundry-private-bootstrap-env - Prepare deterministic private bootstrap values without provisioning"
 	@echo "  foundry-private-provision - Explicit one-time private provisioning and reconciliation"
+	@echo "  foundry-private-evaluation-storage-plan - Read-only evaluation Storage reconciliation plan"
+	@echo "  foundry-private-evaluation-storage-reconcile - Apply the reviewed evaluation Storage-only repair"
 	@echo "  foundry-private-runner-bootstrap - Securely sync the exact private GitHub commit to the VNet runner"
 	@echo "  clean           - Remove caches and test artifacts"
 
@@ -359,10 +364,19 @@ foundry-private-bootstrap-env:
 	./scripts/foundry-private/bootstrap_env.sh
 
 foundry-private-what-if:
-	./scripts/foundry-private/what_if.sh
+	FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE="$(FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE)" \
+		./scripts/foundry-private/what_if.sh
 
 foundry-private-provision:
 	./scripts/foundry-private/provision.sh
+
+foundry-private-evaluation-storage-plan:
+	FOUNDRY_PRIVATE_DEPLOYMENT_PROFILE="$(FOUNDRY_PRIVATE_DEPLOYMENT_PROFILE)" \
+		./scripts/foundry-private/reconcile_evaluation_storage.sh --dry-run
+
+foundry-private-evaluation-storage-reconcile:
+	FOUNDRY_PRIVATE_DEPLOYMENT_PROFILE="$(FOUNDRY_PRIVATE_DEPLOYMENT_PROFILE)" \
+		./scripts/foundry-private/reconcile_evaluation_storage.sh
 
 foundry-private-capability-host-cleanup:
 	./scripts/foundry-private/capability_host_cleanup.sh

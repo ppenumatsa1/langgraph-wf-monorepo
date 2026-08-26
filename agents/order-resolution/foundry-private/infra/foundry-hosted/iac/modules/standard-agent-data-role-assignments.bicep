@@ -38,6 +38,7 @@ resource projectStorageBlobDataOwner 'Microsoft.Authorization/roleAssignments@20
     principalType: 'ServicePrincipal'
     conditionVersion: '2.0'
     condition: storageAgentContainerCondition
+    description: 'Restrict Standard Agent ownership to this Foundry workspace agent containers.'
   }
 }
 

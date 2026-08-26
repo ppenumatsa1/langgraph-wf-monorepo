@@ -562,6 +562,48 @@ bootstrap, and excludes generated pytest scratch content.
   unnecessary account-wide Owner assignment. Runtime verification rejects
   storage network, connection target, identity role, or Owner-condition drift
   before smoke/E2E/evaluation.
+- The first post-authentication two-phase preview incorrectly returned no
+  changes even though live Storage still reported `bypass: None`. Diagnosis
+  found that the retained AZD environment was still in routine
+  `INFRASTRUCTURE_MODE=reuse`; because all retained infrastructure resources
+  are guarded by `isBootstrap`, both previews evaluated an intentionally empty
+  template.
+- The explicit provision entry point now sets
+  `INFRASTRUCTURE_MODE=bootstrap` before phase-one preview/provision and returns
+  to `reuse` after both phases and infrastructure reconciliation, before
+  hydrating that non-mutating mode onto the runner. The release contract
+  verifies this ordering, and standalone preview now requires an explicit
+  expected mode, so a future reconciliation cannot silently no-op while
+  reporting a safe preview.
+- The corrected phase-one preview also exposed unrelated model-policy drift:
+  all three live deployments use `Microsoft.DefaultV2`, while the retained AZD
+  value still requested `Microsoft.Default`. Provision bootstrap now fails
+  closed unless the retained value is explicitly `Microsoft.DefaultV2`,
+  matching the live, recommended policy and preventing a storage-only
+  reconciliation from downgrading model guardrails.
+- Even after preserving the live RAI policy, the full bootstrap preview
+  contained unrelated Container Apps, Foundry project, model-capacity,
+  PostgreSQL, Cosmos DB, Search, and provider-default diffs. The stop condition
+  therefore rejected full provisioning for this storage-only repair despite
+  zero delete/replace changes.
+- A narrow, fail-closed reconciliation command now verifies the exact target
+  and current private posture, edits only the existing project Owner condition,
+  removes only the disproved temporary account-wide Owner assignment, changes
+  Storage bypass from `None` to `AzureServices`, and revalidates the already
+  converged `private-storage` AAD connection without replacing it. It refuses unexpected role,
+  connection, endpoint, or network state and returns AZD to `reuse`.
+- Its read-only plan mode prints the exact bypass transition and role
+  assignment IDs before approval. The mutating path preserves all existing
+  network-rule collections, re-reads the Storage connection after RBAC/network
+  convergence, and
+  removes the temporary account Owner only after the recoverable Storage and
+  connection changes have converged.
+- `AzureServices` bypass restores the proven MAF/IaC contract but is not itself
+  release proof while public network access remains disabled. Only a fresh
+  Foundry evaluation that successfully writes and reads its artifacts closes
+  the blocker. If it still fails, any Foundry resource-instance access rule
+  must be introduced as a separately reviewed contract change rather than
+  bypassing the script's network-rule preservation guard.
 
 ## Open implementation follow-through
 

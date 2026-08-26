@@ -80,7 +80,7 @@ From the lane root:
 make test-deployment-profile
 make test-scripts
 make foundry-private-iac-build
-make foundry-private-what-if
+FOUNDRY_PRIVATE_INFRASTRUCTURE_MODE=bootstrap make foundry-private-what-if
 ```
 
 The what-if guard fails on unplanned delete or replace operations. Provisioning

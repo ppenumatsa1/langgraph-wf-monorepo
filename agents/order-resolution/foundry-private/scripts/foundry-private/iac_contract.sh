@@ -90,6 +90,8 @@ grep -Fq "resource projectStorageBlobDataContributorBootstrap" "$template" ||
   private_die "private Standard Agent setup requires project Storage Blob Data Contributor"
 grep -Fq "bypass: 'AzureServices'" "$template" ||
   private_die "private Foundry evaluation storage requires the trusted Azure-services bypass"
+grep -Fq "param foundryRaiPolicyName string = 'Microsoft.DefaultV2'" "$template" ||
+  private_die "private Foundry model deployments must default to Microsoft.DefaultV2"
 grep -Fq "projectStorageBlobDataContributorBootstrap" "$template" ||
   private_die "private storage connection must wait for project storage RBAC"
 grep -Fq "accountStorageAccountContributorBootstrap" "$template" ||

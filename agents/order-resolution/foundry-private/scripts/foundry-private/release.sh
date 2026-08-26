@@ -68,6 +68,7 @@ run_stage() {
 current_stage=profile_apply
 "$SCRIPT_DIR/apply_profile.sh"
 private_require_target
+private_azd_set INFRASTRUCTURE_MODE reuse
 
 timing app_only start
 FOUNDRY_PRIVATE_RUN_FULL_LOCAL_GATES=1 \
