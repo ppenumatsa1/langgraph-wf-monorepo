@@ -107,6 +107,10 @@ zero rather than retaining a connection for the lifetime of the Foundry
 conversation. This preserves the runtime role's bounded connection budget
 across repeated browser and hosted-E2E conversations.
 
+After fresh hosted E2E, report-only evaluation uploads its artifacts through
+the Entra-only Foundry project storage connection. Release verification first
+confirms the trusted storage bypass and account/project RBAC convergence.
+
 ## Stable event contract
 
 These native event names remain stable for frontend and test consumers:

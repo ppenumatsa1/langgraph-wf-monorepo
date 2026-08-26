@@ -88,8 +88,12 @@ if grep -Fq "Order Resolution Private ACR Pull Assigner" "$template"; then
 fi
 grep -Fq "resource projectStorageBlobDataContributorBootstrap" "$template" ||
   private_die "private Standard Agent setup requires project Storage Blob Data Contributor"
-grep -Fq "resource accountStorageBlobDataOwnerBootstrap" "$template" ||
-  private_die "private evaluation requires account Storage Blob Data Owner"
+grep -Fq "bypass: 'AzureServices'" "$template" ||
+  private_die "private Foundry evaluation storage requires the trusted Azure-services bypass"
+grep -Fq "projectStorageBlobDataContributorBootstrap" "$template" ||
+  private_die "private storage connection must wait for project storage RBAC"
+grep -Fq "accountStorageAccountContributorBootstrap" "$template" ||
+  private_die "private convergence must provision account storage RBAC before the ready phase"
 grep -Fq "projectWorkspaceId: projectWorkspaceId" "$template" ||
   private_die "private Standard Agent storage role assignment requires the raw Foundry workspace ID"
 if grep -Fq "projectWorkspaceIdGuid" "$template"; then
@@ -97,10 +101,9 @@ if grep -Fq "projectWorkspaceIdGuid" "$template"; then
 fi
 data_roles_module="$PRIVATE_AZD_DIR/iac/modules/standard-agent-data-role-assignments.bicep"
 grep -Fq "resource projectStorageBlobDataOwner" "$data_roles_module" ||
-  private_die "private evaluation requires project Storage Blob Data Owner"
-if grep -Fq "condition:" "$data_roles_module"; then
-  private_die "private evaluation Storage Blob Data Owner must not exclude evaluation artifact containers"
-fi
+  private_die "private Standard Agent setup requires project Storage Blob Data Owner"
+grep -Fq "StringLikeIgnoreCase \\'*-azureml-agent\\'" "$data_roles_module" ||
+  private_die "private Standard Agent Owner must remain scoped to agent containers"
 grep -Fq "param standardAgentSearchLocation string = 'westus3'" "$template" ||
   private_die "private Search must avoid the documented East US 2 capacity constraint"
 grep -Fq "location: standardAgentSearchLocation" "$template" ||

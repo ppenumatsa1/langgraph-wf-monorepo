@@ -89,6 +89,8 @@ order-resolution/
   truth. Sync it from canonical backend sources before packaging.
 - Keep private Foundry, PostgreSQL, and ACR access behind private endpoints and
   private DNS. Only the frontend is externally reachable.
+- Keep Foundry storage network/RBAC/connection ordering in the IaC and runtime
+  verification surfaces; do not replace it with ad hoc broad Owner roles.
 - Keep deployment automation noninteractive and fail closed. It must not
   replace business HITL with an infrastructure approval prompt.
 - Do not introduce a second workflow runtime or duplicate the graph in the

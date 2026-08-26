@@ -82,6 +82,9 @@ preserve its runtime or resource language as the architectural end state.
    - Foundry runtime secrets resolve through the deterministic project
      `CustomKeys` connection placeholder rather than a resolved URL in source
      or metadata;
+   - Foundry storage connections are created only after account/project
+     storage RBAC, with public access disabled, default deny, and trusted
+     `AzureServices` bypass;
    - private-network previews and releases run noninteractively and fail closed
      on delete/replace, target, DNS, RBAC, readiness, or evidence violations.
 8. Keep Application Insights request filtering intact for health and SSE paths

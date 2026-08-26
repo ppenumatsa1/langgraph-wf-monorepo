@@ -267,14 +267,14 @@ enforce `cd "$ROOT_DIR/backend"` before module execution; the private lane now
 uses the same contract and tests it. Future evaluator runners must preserve an
 explicit module root rather than relying on the caller's working directory.
 
-## 2026-08-24 - Cross-lane Foundry evaluation storage role
+## 2026-08-24 - Cross-lane Foundry evaluation storage correction
 
-Private evaluation proved that the Standard Agent Setup storage roles are not
-by themselves sufficient for Foundry evaluation artifact transport. The
-workspace-conditioned `Storage Blob Data Owner` assignment covers agent
-containers, while evaluation uses additional artifact containers. Current
-Microsoft Foundry guidance requires unconditioned, storage-account-scoped
-`Storage Blob Data Owner` for both the Foundry account and project managed
-identities. Lanes that run Foundry evaluation must verify both effective
-assignments before accepting deployment verification; public network access
-does not need to be enabled.
+The initial private-lane hypothesis that evaluation required broad,
+unconditioned `Storage Blob Data Owner` for both Foundry identities was
+disproved by a retry with those assignments present. The working MAF private
+contract instead preserves the Standard Agent workspace-conditioned Owner
+assignment, gives both Foundry identities pre-connection Contributor roles,
+keeps storage public access disabled with default deny and trusted
+`AzureServices` bypass, and creates the project storage connection only after
+those roles converge. Private LangGraph now follows that ordering. Public
+lanes should not copy the discarded broad-Owner hypothesis.

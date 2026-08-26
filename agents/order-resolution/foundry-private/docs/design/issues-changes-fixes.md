@@ -548,16 +548,20 @@ bootstrap, and excludes generated pytest scratch content.
 - The next release reached Foundry evaluation and failed artifact upload with
   `ResourceMsiTokenDoesntHavePermissionsOnStorage`. The project already had
   unconditioned `Storage Blob Data Contributor` plus the Standard Agent
-  workspace-conditioned `Storage Blob Data Owner`, but evaluation artifacts
-  are not confined to `*-azureml-agent` containers. Current Microsoft Foundry
-  evaluation guidance requires unconditioned `Storage Blob Data Owner` for
-  both the Foundry account and project managed identities on the connected
-  storage account.
-- IaC now grants that resource-scoped owner role to both Foundry identities.
-  Runtime verification rejects missing, conditioned, or drifted assignments
-  before smoke/E2E/evaluation. Public storage access remains disabled; this
-  changes data-plane authorization only and does not weaken private
-  networking.
+  workspace-conditioned `Storage Blob Data Owner`. The first remediation
+  broadened Owner to both Foundry identities, but a retry still returned the
+  same 403; broad Owner was therefore disproved as the root cause.
+- The existing MAF private ledger and IaC identified the missing contract:
+  storage keeps public access disabled and default deny but permits the trusted
+  `AzureServices` bypass, and project connections are created only after both
+  the project and account identities receive pre-capability-host
+  `Storage Blob Data Contributor` and `Storage Account Contributor`.
+- LangGraph private had `bypass: None` and no RBAC dependencies on
+  `private-storage`. IaC now follows the proven MAF sequence, restores the
+  official workspace-scoped `*-azureml-agent` Owner condition, and removes the
+  unnecessary account-wide Owner assignment. Runtime verification rejects
+  storage network, connection target, identity role, or Owner-condition drift
+  before smoke/E2E/evaluation.
 
 ## Open implementation follow-through
 

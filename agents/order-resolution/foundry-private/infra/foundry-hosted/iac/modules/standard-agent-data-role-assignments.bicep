@@ -27,6 +27,8 @@ resource storageBlobDataOwnerRole 'Microsoft.Authorization/roleDefinitions@2022-
 
 var cosmosDataContributorRoleId = '${cosmosAccount.id}/sqlRoleDefinitions/00000000-0000-0000-0000-000000000002'
 var cosmosAgentDataScope = '${cosmosAccount.id}/dbs/enterprise_memory'
+var storageAgentContainerCondition = '((!(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/read\'}) AND !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/filter/action\'}) AND !(ActionMatches{\'Microsoft.Storage/storageAccounts/blobServices/containers/blobs/tags/write\'})) OR (@Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringStartsWithIgnoreCase \'${projectWorkspaceId}\' AND @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:name] StringLikeIgnoreCase \'*-azureml-agent\'))'
+
 resource projectStorageBlobDataOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(storageAccount.id, projectPrincipalId, storageBlobDataOwnerRole.id, projectWorkspaceId)
   scope: storageAccount
@@ -34,6 +36,8 @@ resource projectStorageBlobDataOwner 'Microsoft.Authorization/roleAssignments@20
     roleDefinitionId: storageBlobDataOwnerRole.id
     principalId: projectPrincipalId
     principalType: 'ServicePrincipal'
+    conditionVersion: '2.0'
+    condition: storageAgentContainerCondition
   }
 }
 

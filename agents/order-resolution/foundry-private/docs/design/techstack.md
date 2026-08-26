@@ -61,6 +61,9 @@ The isolated BYO VNet is `10.74.0.0/16`:
 
 Only the frontend has external ingress. Private DNS zones/links and endpoint
 approval are mandatory; public dependency endpoints are not fallback paths.
+Foundry dependency storage remains public-access disabled and default deny,
+with trusted `AzureServices` bypass and RBAC-before-connection ordering for
+hosted evaluation.
 
 ## Observability
 

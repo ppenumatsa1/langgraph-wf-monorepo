@@ -145,6 +145,9 @@ and the audit projection is not the source of graph resume state.
 - LangSmith is not required for runtime, release, or evaluation gating.
 - Hosted telemetry is emitted by the internal wrapper and private Foundry
   runtime; it must not require browser access to private services.
+- Foundry evaluation artifacts use the approved Entra-only project storage
+  connection after storage RBAC convergence; runtime verification records only
+  posture and role presence, never credentials.
 - Correlate hosted records to the private release window and workflow
   identifiers. A telemetry row count alone is not proof of private DNS,
   endpoint, identity, or deployment readiness.

@@ -72,6 +72,9 @@ identity, and least-privilege RBAC are mandatory prerequisites.
 - Hosted runtime secrets resolve only through the deterministic project
   `CustomKeys` connection placeholder; resolved URLs must not appear in hosted
   metadata or evidence.
+- Foundry dependency storage is Entra-only, public-access disabled, and default
+  deny with trusted `AzureServices` bypass; storage RBAC converges before its
+  project connection is created.
 - Foundry hosting remains Responses-native and browser access remains
   same-origin through the frontend proxy.
 - AG-UI and CopilotKit remain optional, read-only, selected-thread, redacted

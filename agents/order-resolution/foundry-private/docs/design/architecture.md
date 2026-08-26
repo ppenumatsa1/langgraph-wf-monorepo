@@ -66,6 +66,10 @@ Foundry and both eastus2 VNets remain in `eastus2`; the lane-owned Azure AI Sear
 dependency is in `westus3` because Microsoft Learn currently marks `eastus2`
 unavailable for new Search services. Its private endpoint is in the peered
 `westus3` VNet, and the Search private DNS zone is linked to both VNets.
+Foundry dependency storage keeps public access disabled, shared keys disabled,
+and default deny; trusted Azure service traffic is allowed only through the
+`AzureServices` bypass. Its project connection is created after both Foundry
+identities receive the pre-capability-host storage roles.
 
 ## Logical view
 

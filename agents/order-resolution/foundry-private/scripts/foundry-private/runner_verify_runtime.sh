@@ -123,20 +123,58 @@ jq -e --arg principal "$hosted_principal_id" '.principal_id == $principal' \
 foundry_api_version="2025-04-01-preview"
 foundry_account_id="/subscriptions/${subscription_id}/resourceGroups/${resource_group}/providers/Microsoft.CognitiveServices/accounts/${foundry_account}"
 foundry_project_id="${foundry_account_id}/projects/${foundry_project}"
-foundry_account_principal="$(
+foundry_account_json="$(
   az rest --method get \
     --url "https://management.azure.com${foundry_account_id}?api-version=${foundry_api_version}" \
-    --query 'identity.principalId' --output tsv
+    --output json
 )"
-foundry_project_principal="$(
+foundry_project_json="$(
   az rest --method get \
     --url "https://management.azure.com${foundry_project_id}?api-version=${foundry_api_version}" \
-    --query 'identity.principalId' --output tsv
+    --output json
 )"
+foundry_account_principal="$(jq -r '.identity.principalId // empty' <<<"$foundry_account_json")"
+foundry_project_principal="$(jq -r '.identity.principalId // empty' <<<"$foundry_project_json")"
+foundry_project_workspace_id="$(jq -r '.properties.internalId // empty' <<<"$foundry_project_json")"
 [[ -n "$foundry_account_principal" && -n "$foundry_project_principal" ]] ||
   private_die "private Foundry account and project managed identities are required"
+[[ "$foundry_project_workspace_id" =~ ^[[:xdigit:]]{32}$ ]] ||
+  private_die "private Foundry project requires the raw 32-character workspace ID"
 
 storage_scope="/subscriptions/${subscription_id}/resourceGroups/${resource_group}/providers/Microsoft.Storage/storageAccounts/${storage_account}"
+storage_json="$(
+  az rest --method get \
+    --url "https://management.azure.com${storage_scope}?api-version=2024-01-01" \
+    --output json
+)"
+jq -e '
+  .properties.publicNetworkAccess == "Disabled"
+  and .properties.networkAcls.defaultAction == "Deny"
+  and .properties.networkAcls.bypass == "AzureServices"
+  and .properties.allowSharedKeyAccess == false
+' <<<"$storage_json" >/dev/null ||
+  private_die "private Foundry storage must remain Entra-only with Azure-services bypass"
+
+storage_blob_endpoint="$(jq -r '.properties.primaryEndpoints.blob // empty' <<<"$storage_json")"
+[[ -n "$storage_blob_endpoint" ]] ||
+  private_die "private Foundry storage blob endpoint is missing"
+storage_connection="$(
+  az rest --method get \
+    --url "https://management.azure.com${foundry_project_id}/connections/private-storage?api-version=${foundry_api_version}" \
+    --output json
+)"
+jq -e \
+  --arg storage_scope "${storage_scope,,}" \
+  --arg target "$storage_blob_endpoint" '
+    .properties.category == "AzureStorageAccount"
+    and .properties.authType == "AAD"
+    and .properties.target == $target
+    and ((.properties.metadata.ResourceId // "") | ascii_downcase) == $storage_scope
+  ' <<<"$storage_connection" >/dev/null ||
+  private_die "private Foundry storage connection must target the approved Entra-only storage account"
+
+storage_blob_contributor_role="/subscriptions/${subscription_id}/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe"
+storage_account_contributor_role="/subscriptions/${subscription_id}/providers/Microsoft.Authorization/roleDefinitions/17d1049b-9a84-46fb-8f53-869881c3d3ab"
 storage_owner_role="/subscriptions/${subscription_id}/providers/Microsoft.Authorization/roleDefinitions/b7e6dc6d-f1e8-4753-8033-0f276bb0955b"
 storage_assignments="$(
   az rest --method get \
@@ -147,18 +185,37 @@ for identity in \
   "project:${foundry_project_principal}"; do
   identity_kind="${identity%%:*}"
   principal_id="${identity#*:}"
-  jq -e \
-    --arg principal "$principal_id" \
-    --arg role "${storage_owner_role,,}" '
+  for required_role in \
+    "$storage_blob_contributor_role" \
+    "$storage_account_contributor_role"; do
+    jq -e \
+      --arg principal "$principal_id" \
+      --arg role "${required_role,,}" '
+        any(
+          .value[]?;
+          .properties.principalId == $principal
+          and (.properties.roleDefinitionId | ascii_downcase) == $role
+          and (.properties.condition // null) == null
+        )
+      ' <<<"$storage_assignments" >/dev/null ||
+      private_die "private Foundry ${identity_kind} identity is missing required pre-connection storage RBAC"
+  done
+done
+
+jq -e \
+    --arg principal "$foundry_project_principal" \
+    --arg role "${storage_owner_role,,}" \
+    --arg workspace "$foundry_project_workspace_id" '
       any(
         .value[]?;
         .properties.principalId == $principal
         and (.properties.roleDefinitionId | ascii_downcase) == $role
-        and (.properties.condition // null) == null
+        and .properties.conditionVersion == "2.0"
+        and (.properties.condition // "" | contains($workspace))
+        and (.properties.condition // "" | contains("*-azureml-agent"))
       )
     ' <<<"$storage_assignments" >/dev/null ||
-    private_die "private evaluation requires unconditioned Storage Blob Data Owner for the Foundry ${identity_kind} identity"
-done
+  private_die "private Foundry project Storage Blob Data Owner must remain scoped to agent containers"
 
 jq -n \
   --arg backend "$backend_name" \

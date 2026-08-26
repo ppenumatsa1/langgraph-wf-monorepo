@@ -58,6 +58,10 @@ automatic bounded poll requires the account and account capability host to be
 project, connections, project RBAC, and project capability host. No human
 approval flag or blind retry is involved.
 
+Within phase two, storage RBAC is ordered before the project storage
+connection. Storage remains public-access disabled and default deny, with the
+trusted `AzureServices` bypass required by the proven private evaluation path.
+
 ## Deployment stages
 
 ### Phase 1: validate and authorize
@@ -76,7 +80,7 @@ approval flag or blind retry is involved.
 | 5 | Network and DNS | Confirms the BYO VNet, subnet reservations, private endpoints, DNS zones/links, route policy, and endpoint approvals. |
 | 6 | Private services | Creates or confirms private Foundry integration, private ACR, private PostgreSQL, Application Insights, identities, and Container Apps. |
 | 7 | Database bootstrap and readiness | Applies canonical administrator schema, creates/rotates the least-privilege runtime credential, and verifies TLS, private hostname, tables, runtime DML, and denied DDL. |
-| 8 | Foundry readiness | Confirms private endpoint reachability, model deployment/readiness, monitoring connection, runtime-secret connection prerequisites, and minimum RBAC. |
+| 8 | Foundry readiness | Confirms private endpoint reachability, model deployment/readiness, monitoring/runtime/storage connections, trusted storage bypass, and account/project RBAC. |
 
 ### Phase 3: deploy the application
 

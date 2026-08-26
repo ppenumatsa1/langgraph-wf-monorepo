@@ -57,6 +57,9 @@ Verify:
 - damaged-item HITL behavior
 - same-origin frontend `/api` calls return JSON or SSE rather than HTML fallbacks
 - telemetry and evaluation use fresh release-window evidence only
+- Foundry storage reports public access disabled, default deny,
+  `AzureServices` bypass, the approved project connection, and converged
+  account/project storage RBAC
 - Application Insights contains correlated workflow, Foundry, and HITL spans
 - repeated fresh conversations do not produce `too many connections`, Foundry
   424/500 responses, or a retained hosted-session connection floor

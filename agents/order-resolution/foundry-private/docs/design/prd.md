@@ -80,6 +80,9 @@ public endpoints are not fallback paths.
 13. Repeated Foundry conversations do not exhaust the runtime-role connection
     budget; wrapper and hosted pools are bounded, idle-shrinking, and verified
     from deployed configuration.
+14. Evaluation artifact upload uses the private Foundry storage connection
+    after account/project RBAC convergence, with public access disabled and
+    trusted Azure service bypass verified.
 
 ## Delivery contract
 

@@ -102,7 +102,13 @@ grep -Fq '"APP_ENV=foundry-private-wrapper"' "$scripts_dir/runner_deploy_runtime
 grep -Fq '"POSTGRES_POOL_MIN_SIZE=0"' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq '"POSTGRES_POOL_MAX_SIZE=2"' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq '.POSTGRES_POOL_MAX_IDLE_SECONDS == "15"' "$scripts_dir/runner_verify_runtime.sh"
-grep -Fq 'private evaluation requires unconditioned Storage Blob Data Owner for the Foundry ${identity_kind} identity' \
+grep -Fq 'private Foundry storage must remain Entra-only with Azure-services bypass' \
+  "$scripts_dir/runner_verify_runtime.sh"
+grep -Fq 'private Foundry ${identity_kind} identity is missing required pre-connection storage RBAC' \
+  "$scripts_dir/runner_verify_runtime.sh"
+grep -Fq -- '--arg principal "$principal_id"' "$scripts_dir/runner_verify_runtime.sh"
+grep -Fq -- '--arg principal "$foundry_project_principal"' "$scripts_dir/runner_verify_runtime.sh"
+grep -Fq 'private Foundry project Storage Blob Data Owner must remain scoped to agent containers' \
   "$scripts_dir/runner_verify_runtime.sh"
 grep -Fq '"FOUNDRY_RESPONSES_ENDPOINT=$responses_endpoint"' "$scripts_dir/runner_deploy_runtime.sh"
 grep -Fq 'FOUNDRY_HOSTED_RESPONSES_URL' "$scripts_dir/runner_deploy_runtime.sh"

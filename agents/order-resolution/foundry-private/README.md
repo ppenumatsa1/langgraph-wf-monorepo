@@ -107,6 +107,9 @@ Use the design ledger for the explicit non-claims and implementation boundary.
   required DML, and required sequence usage only.
 - Release verification rejects pool settings that could retain unbounded idle
   connections across Foundry conversation sessions.
+- Foundry dependency storage remains public-access disabled and Entra-only,
+  with default deny plus the trusted `AzureServices` bypass. The project
+  storage connection is created only after account/project storage RBAC.
 - Native checkpoint tables may contain workflow PII needed for resume. Their
   retention, access, and export handling must stay more restrictive than
   redacted browser projections and general audit summaries.
